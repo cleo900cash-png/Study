@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="うんどうチャレンジ" />
+<meta name="theme-color" content="#DFF1FF" />
+<title>うんどうチャレンジ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --font-display: 'M PLUS Rounded 1c', sans-serif; --font-body: 'Zen Maru Gothic', sans-serif; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: linear-gradient(180deg, #DFF1FF 0%, #F3FBEF 55%, #EAF7E5 100%);
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  button { font: inherit; cursor: pointer; border: none; background: none; padding: 0; color: inherit; }
+  .page { min-height: 100vh; position: relative; }
+  .container { max-width: 480px; margin: 0 auto; position: relative; min-height: 100vh; }
+  .loading-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #EAF7E5; }
+  .switcher-row { display: flex; gap: 8px; padding: 14px 16px 0; }
+  .switcher-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 14px; padding: 8px 0; }
+  .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 10px; }
+  .mascot-badge { width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .header-level { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: #2C3E50; }
+  .progress-track { width: 130px; height: 6px; background: #E3ECF2; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .streak-badge { display: flex; align-items: center; gap: 4px; background: #FFFFFFCC; padding: 6px 12px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); font-family: var(--font-display); font-weight: 800; font-size: 16px; color: #2C3E50; }
+  .error-banner { margin: 0 16px 8px; padding: 8px 12px; background: #FFE3D9; color: #D9502C; border-radius: 10px; font-size: 12px; }
+  .main { padding-bottom: 90px; }
+  .date-row { margin-bottom: 12px; padding: 12px 16px 0; font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #2C3E50; }
+  .section-pad { padding: 0 16px; }
+  .big-progress-track { position: relative; height: 26px; background: #FFFFFF; border-radius: 14px; overflow: hidden; box-shadow: inset 0 0 0 2px #E3ECF2; margin-bottom: 10px; }
+  .big-progress-fill { height: 100%; border-radius: 14px; transition: width 0.4s ease; }
+  .big-progress-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; font-size: 12px; color: #2C3E50; }
+  .message-banner { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 14px; margin-bottom: 14px; }
+  .tier-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+  .tier-edit-btn { display: flex; align-items: center; gap: 5px; }
+  .section-label { font-family: var(--font-display); font-weight: 700; font-size: 12px; }
+  .level-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 11px; }
+  .card-grid { display: flex; flex-direction: column; gap: 10px; }
+  .card { display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 2px solid #E3ECF2; border-radius: 16px; padding: 12px 14px; text-align: left; box-shadow: 0 2px 6px rgba(0,0,0,0.04); width: 100%; transition: border-color 0.2s ease, background 0.2s ease; }
+  .card-emoji { font-size: 30px; width: 40px; text-align: center; flex-shrink: 0; }
+  .card-name { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: #2C3E50; }
+  .card-desc { font-family: var(--font-body); font-size: 12px; color: #7A8A99; margin-top: 2px; }
+  .stamp-circle { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #D8E2E8; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #FFFFFF; flex-shrink: 0; }
+  .bonus-note { display: flex; align-items: center; gap: 5px; justify-content: center; margin-top: 10px; font-family: var(--font-display); font-weight: 700; font-size: 12px; color: #3E9C87; }
+  @keyframes popStamp { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 60% { transform: scale(1.25) rotate(8deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+  .pop { animation: popStamp 0.5s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .nav-btn { width: 36px; height: 36px; border-radius: 10px; background: #FFFFFFCC; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #2C3E50; }
+  .cal-title { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: #2C3E50; }
+  .week-row { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 4px; }
+  .week-label { text-align: center; font-size: 11px; font-weight: 700; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .day-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #FFFFFFAA; border-radius: 10px; gap: 1px; }
+  .day-num { font-size: 13px; color: #2C3E50; }
+  .day-mark { font-size: 15px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(30,40,50,0.4); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .modal-card { width: 100%; max-width: 480px; background: #F8FCF6; border-radius: 20px 20px 0 0; padding: 18px 16px calc(28px + env(safe-area-inset-bottom)); max-height: 80vh; overflow-y: auto; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; }
+  .modal-title { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: #2C3E50; }
+  .close-btn { background: #EEF3F5; border-radius: 8px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #7A8A99; }
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .stat-card { background: #FFFFFF; border-radius: 14px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .stat-icon { font-size: 18px; }
+  .stat-value { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: #2C3E50; margin-top: 4px; }
+  .stat-label { font-family: var(--font-body); font-size: 11px; color: #7A8A99; }
+  .tree-stat-card { margin-top: 12px; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 14px; }
+  .tree-stat-name { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: #2C3E50; }
+  .tree-stat-sub { font-family: var(--font-body); font-size: 12px; color: #7A8A99; }
+  .tier-banner { width: 100%; margin-top: 10px; background: #FFFFFF; border: 2px solid; border-radius: 12px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-display); font-weight: 700; font-size: 13px; color: #2C3E50; }
+  .chart-card { background: #FFFFFF; border-radius: 16px; padding: 14px 10px 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .chart-bars { display: flex; align-items: flex-end; justify-content: space-between; height: 130px; gap: 6px; }
+  .chart-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+  .chart-bar-track { width: 100%; height: 100px; display: flex; align-items: flex-end; background: #F1F5F7; border-radius: 6px; overflow: hidden; }
+  .chart-bar { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.3s ease; }
+  .chart-bar-label { font-size: 11px; color: #7A8A99; font-family: var(--font-body); }
+  .chart-legend { display: flex; gap: 16px; margin-bottom: 6px; padding-left: 4px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .together-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+  .together-card { display: flex; flex-direction: column; align-items: center; border-radius: 18px; padding: 14px 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); width: 100%; }
+  .together-name { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: #2C3E50; margin-top: 4px; }
+  .together-level { font-family: var(--font-body); font-size: 11px; color: #7A8A99; }
+  .together-today-track { width: 100%; height: 8px; background: #FFFFFF; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+  .together-today-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+  .together-today-label { font-family: var(--font-body); font-size: 11px; color: #2C3E50; margin-top: 2px; }
+  .together-stats { display: flex; gap: 10px; margin-top: 6px; font-size: 11px; color: #2C3E50; font-family: var(--font-body); }
+  .vs-banner { margin-top: 14px; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 13px; color: #2C3E50; background: #FFFFFF; border-radius: 14px; padding: 10px 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .section-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: #2C3E50; margin: 16px 0 8px; }
+  .level-option { display: flex; flex-direction: column; align-items: stretch; text-align: left; background: #FFFFFF; border: 2px solid #E3ECF2; border-radius: 14px; padding: 12px 14px; width: 100%; }
+  .level-option-head { display: flex; justify-content: space-between; align-items: center; }
+  .level-option-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: #2C3E50; }
+  .level-option-desc { font-family: var(--font-body); font-size: 11px; color: #7A8A99; margin-top: 3px; }
+  .level-picker-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .level-picker-note { font-family: var(--font-body); font-size: 11px; color: #7A8A99; margin-top: 12px; text-align: center; }
+  .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; display: flex; justify-content: space-around; background: #FFFFFFF2; border-top: 1px solid #E3ECF2; padding: 8px 0 calc(10px + env(safe-area-inset-bottom)); }
+  .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 18px; }
+  .tab-icon { font-size: 20px; }
+  .tab-label { font-family: var(--font-body); font-size: 11px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* ---------- Data ---------- */
+const CORE_TIERS = [
+  { label: "きほんメニュー Lv.1", items: [
+    { id: "ladder", name: "ラダーあそび", emoji: "🪜", desc: "前・よこ に歩く" },
+    { id: "throw", name: "ボールなげ", emoji: "🎾", desc: "親とキャッチボール（近く）" },
+    { id: "balance", name: "バランスあそび", emoji: "🤸", desc: "かた足立ち 30びょう" },
+    { id: "dash", name: "ダッシュあそび", emoji: "💨", desc: "前向きダッシュ 3本" },
+  ]},
+  { label: "きほんメニュー Lv.2", items: [
+    { id: "ladder", name: "ラダーあそび", emoji: "🪜", desc: "ケンケン・グーパージャンプ" },
+    { id: "throw", name: "ボールなげ", emoji: "🎾", desc: "かべあて キャッチ" },
+    { id: "balance", name: "バランスあそび", emoji: "🤸", desc: "目をとじて 10びょう" },
+    { id: "dash", name: "ダッシュあそび", emoji: "💨", desc: "前・うしろ ダッシュ" },
+  ]},
+  { label: "きほんメニュー Lv.3", items: [
+    { id: "ladder", name: "ラダーあそび", emoji: "🪜", desc: "2きざみジャンプ・れんぞく" },
+    { id: "throw", name: "ボールなげ", emoji: "🎾", desc: "かた手キャッチ" },
+    { id: "balance", name: "バランスあそび", emoji: "🤸", desc: "一本線あるき" },
+    { id: "dash", name: "ダッシュあそび", emoji: "💨", desc: "前・うしろ・よこ ダッシュ" },
+  ]},
+  { label: "きほんメニュー Lv.4", items: [
+    { id: "ladder", name: "ラダーあそび", emoji: "🪜", desc: "へんそくステップ・スピードアップ" },
+    { id: "throw", name: "ボールなげ", emoji: "🎾", desc: "うごきながら キャッチ" },
+    { id: "balance", name: "バランスあそび", emoji: "🤸", desc: "バランス＋ボールそうさ" },
+    { id: "dash", name: "ダッシュあそび", emoji: "💨", desc: "きりかえしダッシュ（コーンタッチ）" },
+  ]},
+];
+const CORE_IDS = ["ladder", "throw", "balance", "dash"];
+const TIER_DAYS = 14;
+const MAX_TIER = CORE_TIERS.length - 1;
+
+const PLUS_ALPHA_ITEMS = [
+  { id: "pool", name: "プール", emoji: "🏊", desc: "およぐ・けのび・バタ足" },
+  { id: "soccer", name: "サッカー", emoji: "⚽", desc: "サッカーの練習・試合" },
+  { id: "athletic", name: "アスレチック", emoji: "🧗", desc: "ロープ・雲てい・木のぼり" },
+  { id: "parkour", name: "パルクール", emoji: "🤾", desc: "パルクールの練習" },
+  { id: "park", name: "公園あそび", emoji: "🌳", desc: "公園でおもいっきりあそぶ" },
+];
+const PLUS_ALPHA_IDS = PLUS_ALPHA_ITEMS.map((i) => i.id);
+const TODAY_MAX = CORE_IDS.length + PLUS_ALPHA_ITEMS.length;
+
+const CHILDREN = {
+  uka: {
+    name: "ウカ", emoji: "🦄", accent: "#B15FCF", accentSoft: "#F3E4FB",
+    levels: [
+      { min: 0, name: "たまご", stage: 0 },
+      { min: 5, name: "こうま", stage: 1 },
+      { min: 15, name: "つのが生えた", stage: 2 },
+      { min: 30, name: "キラキラユニコーン", stage: 3 },
+      { min: 50, name: "にじのユニコーン", stage: 4 },
+      { min: 80, name: "でんせつのユニコーン", stage: 5 },
+    ],
+  },
+  kaio: {
+    name: "カイオ", emoji: "🚗", accent: "#E08A2E", accentSoft: "#FDECD8",
+    levels: [
+      { min: 0, name: "ミニカー", stage: 0 },
+      { min: 5, name: "パワーアップカー", stage: 1 },
+      { min: 15, name: "スピードカー", stage: 2 },
+      { min: 30, name: "レーシングカー", stage: 3 },
+      { min: 50, name: "チャンピオンカー", stage: 4 },
+      { min: 80, name: "でんせつのマシン", stage: 5 },
+    ],
+  },
+};
+
+const MESSAGES = {
+  empty: ["さあ、はじめよう！", "きょうもチャレンジ！", "1つやってみよう！"],
+  partial: ["いいちょうし！", "その調子〜！", "あと少し！"],
+  full: ["パーフェクト！🌟", "きょうも やりきった！", "すごい！かんぺき！"],
+};
+
+/* ---------- Helpers ---------- */
+function toDateStr(d) {
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
+  return y + "-" + m + "-" + day;
+}
+function daysBetween(startDate, dateStr) {
+  const a = new Date(startDate + "T00:00:00"), b = new Date(dateStr + "T00:00:00");
+  return Math.floor((b - a) / 86400000);
+}
+function getTier(startDate, dateStr, baseTier) {
+  baseTier = baseTier || 0;
+  if (!startDate) return Math.min(MAX_TIER, Math.max(0, baseTier));
+  const days = daysBetween(startDate, dateStr);
+  return Math.min(MAX_TIER, Math.max(0, baseTier + Math.floor(days / TIER_DAYS)));
+}
+function daysUntilNextTier(startDate, dateStr, baseTier) {
+  baseTier = baseTier || 0;
+  const tier = getTier(startDate, dateStr, baseTier);
+  if (tier >= MAX_TIER) return null;
+  if (!startDate) return TIER_DAYS;
+  const days = daysBetween(startDate, dateStr);
+  const tierStartDay = (tier - baseTier) * TIER_DAYS;
+  return tierStartDay + TIER_DAYS - days;
+}
+function getLevel(childKey, points) {
+  const levels = CHILDREN[childKey].levels;
+  let current = levels[0], idx = 0;
+  for (let i = 0; i < levels.length; i++) { if (points >= levels[i].min) { current = levels[i]; idx = i; } }
+  const next = levels[idx + 1];
+  return Object.assign({}, current, { idx: idx, next: next });
+}
+function pickMessage(ratio) {
+  const key = ratio === 0 ? "empty" : ratio >= 1 ? "full" : "partial";
+  const arr = MESSAGES[key];
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+function sumPoints(dates) { return Object.values(dates).reduce((s, a) => s + a.length, 0); }
+function calcStreak(dates, today) {
+  let count = 0, cursor = new Date(today);
+  if (!(dates[toDateStr(cursor)] || []).length) cursor.setDate(cursor.getDate() - 1);
+  for (let i = 0; i < 400; i++) {
+    const ds = toDateStr(cursor);
+    if (!(dates[ds] || []).length) break;
+    count++; cursor.setDate(cursor.getDate() - 1);
+  }
+  return count;
+}
+function coreDoneCount(checked) { return checked.filter(id => CORE_IDS.includes(id)).length; }
+function bonusDoneCount(checked) { return checked.filter(id => PLUS_ALPHA_IDS.includes(id)).length; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- Mascot SVGs ---------- */
+function unicornSVG(stage, size) {
+  const maneColors = ["#F3B6E0", "#D8A8F0", "#B6C6F5", "#A8E6C9", "#FFE29A"];
+  const maneCount = Math.min(stage + 1, maneColors.length);
+  let manes = "";
+  for (let i = 0; i < maneCount; i++) {
+    manes += '<path d="M ' + (44 - i * 2) + ' ' + (26 + i * 5) + ' q -8 2 -6 10" stroke="' + maneColors[i] + '" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  }
+  let legs = "";
+  for (let i = 0; i < 4; i++) {
+    legs += '<rect x="' + (20 + i * 10) + '" y="55" width="5" height="12" rx="2.5" fill="#F3E9FA" stroke="#E4CBF2" stroke-width="1.5"/>';
+  }
+  const horn = stage >= 1 ? '<polygon points="58,20 61,30 55,29" fill="#F5C84C" stroke="#E0AC1E" stroke-width="1"/>' : "";
+  const wings = stage >= 4 ? '<path d="M 16 40 q -10 -4 -12 6 q 8 2 12 -6" fill="#FDE8B8" opacity="0.9"/><path d="M 18 48 q -10 2 -10 12 q 9 -1 10 -12" fill="#FDE8B8" opacity="0.9"/>' : "";
+  const sparkles = stage >= 5 ? '<text x="8" y="18" font-size="10">✨</text><text x="60" y="52" font-size="10">✨</text>' : "";
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 72 72" aria-hidden="true">' +
+    '<ellipse cx="34" cy="46" rx="18" ry="13" fill="#FFFFFF" stroke="#E9D6F5" stroke-width="2"/>' + legs +
+    '<circle cx="52" cy="34" r="11" fill="#FFFFFF" stroke="#E9D6F5" stroke-width="2"/>' + horn + manes +
+    '<circle cx="56" cy="33" r="1.6" fill="#4A4A4A"/>' + wings + sparkles + '</svg>';
+}
+function carSVG(stage, size) {
+  const bodyColors = ["#9AA5AD", "#3E7FD4", "#E23B3B", "#F07C1E", "#F2C230", "#1B1D22"];
+  const rimColors = ["#C9CFD6", "#C9CFD6", "#DCE2E6", "#2B2E33", "#2B2E33", "#F5C84C"];
+  const color = bodyColors[Math.min(stage, bodyColors.length - 1)];
+  const rim = rimColors[Math.min(stage, rimColors.length - 1)];
+  let speedLines = "";
+  if (stage >= 3) { for (let i = 0; i < 3; i++) speedLines += '<line x1="0" y1="' + (28 + i * 6) + '" x2="11" y2="' + (28 + i * 6) + '" stroke="#B8C4CC" stroke-width="2" stroke-linecap="round" opacity="0.8"/>'; }
+  let spoiler = "";
+  if (stage >= 1) spoiler = '<line x1="56" y1="46" x2="56" y2="30" stroke="#5A5F66" stroke-width="2" stroke-linecap="round"/><line x1="63" y1="44" x2="63" y2="30" stroke="#5A5F66" stroke-width="2" stroke-linecap="round"/><rect x="51" y="27" width="16" height="4" rx="1.6" fill="' + color + '" stroke="#3A3D42" stroke-width="0.6"/>';
+  const hoodScoop = stage >= 3 ? '<rect x="27" y="29" width="9" height="3" rx="1.3" fill="#2B2E33" opacity="0.75"/>' : "";
+  const stripe = stage >= 2 ? '<rect x="14" y="43.5" width="48" height="2.4" rx="1.2" fill="#FFFFFF" opacity="0.85"/>' : "";
+  let wheels = "";
+  [19, 55].forEach(function(cx) {
+    let spokes = "";
+    if (stage >= 2) { [0,72,144,216,288].forEach(function(deg){ const rad = deg*Math.PI/180; spokes += '<line x1="'+cx+'" y1="53" x2="'+(cx+4*Math.cos(rad))+'" y2="'+(53+4*Math.sin(rad))+'" stroke="#1E2023" stroke-width="0.8"/>'; }); }
+    wheels += '<g><circle cx="'+cx+'" cy="53" r="8.5" fill="#1E2023"/><circle cx="'+cx+'" cy="53" r="4.6" fill="'+rim+'" stroke="#1E2023" stroke-width="0.8"/>' + spokes + '<circle cx="'+cx+'" cy="53" r="1.3" fill="#1E2023"/></g>';
+  });
+  const flame = stage >= 4 ? '<path d="M69,47 C74,45 76,48 75,52 C72,51 70,50 69,47" fill="#FF8A3D"/><path d="M69,50 C73,49 74,51 73,54 C71,53 69,52 69,50" fill="#FFC93C"/>' : "";
+  const decals = stage >= 5 ? '<text x="4" y="16" font-size="9">⭐</text><text x="58" y="18" font-size="9">⭐</text>' : "";
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 72 72" aria-hidden="true">' + speedLines + spoiler +
+    '<path d="M6,49 C6,44 8,42 12,41 L22,41 C25,32 32,26 42,25 C50,24 58,27 62,35 L64,37 C67,37 69,40 69,44 L69,47 C69,49 67,51 64,51 L60,51 C60,48 58,46 55,46 C52,46 50,48 50,51 L24,51 C24,48 22,46 19,46 C16,46 14,48 14,51 L9,51 C7,51 6,50 6,49 Z" fill="' + color + '" stroke="rgba(0,0,0,0.18)" stroke-width="0.6"/>' +
+    '<path d="M23,40 C26,32 33,27 41,26 C47,25 53,27 57,32 L51,40 Z" fill="#BFE3F5" opacity="0.92"/>' +
+    '<path d="M23,40 C26,32 33,27 41,26 L41,40 Z" fill="#FFFFFF" opacity="0.25"/>' + hoodScoop + stripe +
+    '<ellipse cx="9" cy="44.5" rx="2.2" ry="1.7" fill="#FFE9A8" stroke="#E0AC1E" stroke-width="0.4"/>' +
+    '<rect x="64.5" y="38.5" width="3" height="4" rx="1" fill="#FF5C4D"/>' + wheels + flame + decals + '</svg>';
+}
+function mascotSVG(childKey, stage, size) { return childKey === "uka" ? unicornSVG(stage, size) : carSVG(stage, size); }
+
+/* ---------- State (synced live via Firebase Realtime Database) ---------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyAgi34Z09TYpBgprh2iBpNrN4PAaa6AEjU",
+  authDomain: "kaio-uka-athletic-program.firebaseapp.com",
+  databaseURL: "https://kaio-uka-athletic-program-default-rtdb.firebaseio.com",
+  projectId: "kaio-uka-athletic-program",
+  storageBucket: "kaio-uka-athletic-program.firebasestorage.app",
+  messagingSenderId: "1087579427984",
+  appId: "1:1087579427984:web:7f6c889c698c73ae827415",
+};
+firebase.initializeApp(firebaseConfig);
+const dbRef = firebase.database().ref("undou-challenge-data");
+
+let syncError = false;
+let isLoaded = false;
+let state = null; // { children: { uka: {...}, kaio: {...} } } -- synced with Firebase
+
+function normalizeChildren(raw) {
+  const todayIso = toDateStr(new Date());
+  const c = (raw && raw.children) || {};
+  const uka = { dates: (c.uka && c.uka.dates) || {}, startDate: (c.uka && c.uka.startDate) || todayIso, baseTier: (c.uka && c.uka.baseTier != null) ? c.uka.baseTier : 0 };
+  const kaio = { dates: (c.kaio && c.kaio.dates) || {}, startDate: (c.kaio && c.kaio.startDate) || todayIso, baseTier: (c.kaio && c.kaio.baseTier != null) ? c.kaio.baseTier : 1 };
+  return { children: { uka: uka, kaio: kaio } };
+}
+
+dbRef.on("value", function (snapshot) {
+  state = normalizeChildren(snapshot.val());
+  isLoaded = true;
+  syncError = false;
+  render();
+}, function (error) {
+  syncError = true;
+  if (!isLoaded) { state = normalizeChildren(null); isLoaded = true; }
+  render();
+});
+
+function pushState() {
+  try { dbRef.set(state); syncError = false; }
+  catch (e) { syncError = true; }
+}
+
+let activeChild = "uka";
+try { activeChild = localStorage.getItem("undou-active-child") || "uka"; } catch (e) {}
+function setActiveChild(key) {
+  activeChild = key;
+  try { localStorage.setItem("undou-active-child", key); } catch (e) {}
+}
+
+let uiTab = "today";
+let calMonth = new Date();
+let selectedDate = null;
+let levelPickerChild = null;
+let todayMessage = pickMessage(0);
+let lastToggled = null;
+
+/* ---------- Render helpers ---------- */
+function activityCardHTML(item, accent, checked, dataAttrs) {
+  return '<button class="card" style="' + (checked ? 'background:#FBF8FD;border-color:' + accent + ';' : '') + '" data-action="toggleItem" ' + dataAttrs + '>' +
+    '<div class="card-emoji">' + item.emoji + '</div>' +
+    '<div style="flex:1;text-align:left;"><div class="card-name">' + esc(item.name) + '</div><div class="card-desc">' + esc(item.desc) + '</div></div>' +
+    '<div class="stamp-circle" data-stamp="' + item.id + '" style="' + (checked ? 'background:#FFC93C;border-color:#FFC93C;' : '') + '">' + (checked ? '★' : '') + '</div>' +
+  '</button>';
+}
+function cardGridHTML(items, accent, checked, childKey, dateStr) {
+  return '<div class="card-grid">' + items.map(function(item) {
+    return activityCardHTML(item, accent, checked.includes(item.id), 'data-child="' + childKey + '" data-date="' + dateStr + '" data-item="' + item.id + '"');
+  }).join('') + '</div>';
+}
+
+/* ---------- Views ---------- */
+function renderSwitcher() {
+  return '<div class="switcher-row">' + Object.keys(CHILDREN).map(function(key) {
+    const info = CHILDREN[key], active = key === activeChild;
+    return '<button class="switcher-btn" data-action="selectChild" data-child="' + key + '" style="background:' + (active ? info.accentSoft : '#FFFFFFAA') + ';box-shadow:' + (active ? 'inset 0 0 0 2px ' + info.accent : 'inset 0 0 0 1px #E3ECF2') + ';">' +
+      '<span style="font-size:18px;">' + info.emoji + '</span>' +
+      '<span style="font-family:var(--font-display);font-weight:700;font-size:13px;color:' + (active ? info.accent : '#8A97A3') + ';">' + info.name + '</span>' +
+    '</button>';
+  }).join('') + '</div>';
+}
+function renderHeader(childInfo, activeChild, level, totalPoints, streak) {
+  const progressPct = level.next ? Math.min(100, Math.round((totalPoints - level.min) / (level.next.min - level.min) * 100)) : 100;
+  return '<header class="header">' +
+    '<div style="display:flex;align-items:center;gap:12px;">' +
+      '<div class="mascot-badge" style="background:' + childInfo.accentSoft + ';">' + mascotSVG(activeChild, level.stage, 56) + '</div>' +
+      '<div><div class="header-level">' + childInfo.emoji + ' ' + esc(level.name) + '</div>' +
+      '<div class="progress-track"><div class="progress-fill" style="width:' + progressPct + '%;background:linear-gradient(90deg,' + childInfo.accentSoft + ',' + childInfo.accent + ');"></div></div></div>' +
+    '</div>' +
+    '<div class="streak-badge">🔥 ' + streak + '</div>' +
+  '</header>';
+}
+function renderToday(childKey, accent, startDate, baseTier, checked) {
+  const today = new Date(), dateStr = toDateStr(today);
+  const tier = getTier(startDate, dateStr, baseTier);
+  const coreDone = coreDoneCount(checked), bonusDone = bonusDoneCount(checked);
+  const ratio = coreDone / CORE_IDS.length;
+  const daysLeft = daysUntilNextTier(startDate, dateStr, baseTier);
+  const weekdayLabel = ["にちようび","げつようび","かようび","すいようび","もくようび","きんようび","どようび"][today.getDay()];
+  let html = '<div class="date-row">' + (today.getMonth()+1) + 'がつ' + today.getDate() + 'にち（' + weekdayLabel + '）</div>';
+  html += '<div class="section-pad">';
+  html += '<div class="big-progress-track"><div class="big-progress-fill" style="width:' + (ratio*100) + '%;background:linear-gradient(90deg,' + accent + '99,' + accent + ');"></div><span class="big-progress-label">' + coreDone + ' / ' + CORE_IDS.length + '</span></div>';
+  html += '<div class="message-banner" style="color:' + accent + ';">' + esc(todayMessage) + '</div>';
+  html += '<div class="tier-row"><button class="tier-edit-btn" data-action="openLevelPicker" data-child="' + childKey + '"><span class="section-label" style="color:' + accent + ';">' + esc(CORE_TIERS[tier].label) + '</span><span style="font-size:12px;">✏️</span></button>';
+  html += daysLeft !== null
+    ? '<span class="level-pill" style="color:' + accent + ';background:' + accent + '1A;">あと' + daysLeft + 'にちでレベルアップ⤴</span>'
+    : '<span class="level-pill" style="color:' + accent + ';background:' + accent + '1A;">さいこうレベル🏅</span>';
+  html += '</div>';
+  html += cardGridHTML(CORE_TIERS[tier].items, accent, checked, childKey, dateStr);
+  html += '<div class="section-label" style="color:#3E9C87;margin-top:16px;">プラスアルファ（ボーナス）</div>';
+  html += cardGridHTML(PLUS_ALPHA_ITEMS, "#3E9C87", checked, childKey, dateStr);
+  if (bonusDone > 0) html += '<div class="bonus-note">✨ ボーナス ' + bonusDone + 'こ たっせい！</div>';
+  html += '</div>';
+  return html;
+}
+function renderCalendar(childData, accent, todayStr) {
+  const year = calMonth.getFullYear(), month = calMonth.getMonth();
+  const firstDay = new Date(year, month, 1), startWeekday = firstDay.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let cells = [];
+  for (let i = 0; i < startWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  let html = '<div class="section-pad">';
+  html += '<div class="cal-nav"><button class="nav-btn" data-action="calPrev">‹</button><div class="cal-title">' + year + '年 ' + (month+1) + '月</div><button class="nav-btn" data-action="calNext">›</button></div>';
+  html += '<div class="week-row">' + ["日","月","火","水","木","金","土"].map(function(w,i){ return '<div class="week-label" style="color:' + (i===0?'#FF6B5B':i===6?'#4FA8E0':'#7A8A99') + ';">' + w + '</div>'; }).join('') + '</div>';
+  html += '<div class="cal-grid">';
+  cells.forEach(function(d) {
+    if (d === null) { html += '<div></div>'; return; }
+    const dateObj = new Date(year, month, d), ds = toDateStr(dateObj);
+    const checked = childData.dates[ds] || [];
+    const ratio = coreDoneCount(checked) / CORE_IDS.length;
+    const hasBonus = bonusDoneCount(checked) > 0;
+    const isToday = ds === todayStr;
+    const isFuture = dateObj > new Date(todayStr + "T23:59:59");
+    const mark = ratio >= 1 ? "🌟" : ratio > 0 ? "⭐" : isFuture ? "" : "·";
+    html += '<button class="day-cell" ' + (isFuture ? 'disabled' : 'data-action="selectDay" data-date="' + ds + '"') + ' style="' + (isToday ? 'box-shadow:inset 0 0 0 2px ' + accent + ';' : '') + 'opacity:' + (isFuture ? 0.35 : 1) + ';">' +
+      '<span class="day-num">' + d + '</span><span class="day-mark">' + mark + (hasBonus ? '✨' : '') + '</span></button>';
+  });
+  html += '</div></div>';
+  return html;
+}
+function renderDayModal(childKey, accent, startDate, baseTier, dateStr, checked) {
+  const dateObj = new Date(dateStr + "T00:00:00");
+  const tier = getTier(startDate, dateStr, baseTier);
+  let html = '<div class="modal-overlay" data-action="closeDayModal"><div class="modal-card" onclick="event.stopPropagation()">';
+  html += '<div class="modal-head"><div class="modal-title">' + (dateObj.getMonth()+1) + 'がつ' + dateObj.getDate() + 'にち</div><button class="close-btn" data-action="closeDayModal">✕</button></div>';
+  html += '<div class="section-label" style="color:' + accent + ';margin:12px 0 8px;">' + esc(CORE_TIERS[tier].label) + '</div>';
+  html += cardGridHTML(CORE_TIERS[tier].items, accent, checked, childKey, dateStr);
+  html += '<div class="section-label" style="color:#3E9C87;margin:16px 0 8px;">プラスアルファ（ボーナス）</div>';
+  html += cardGridHTML(PLUS_ALPHA_ITEMS, "#3E9C87", checked, childKey, dateStr);
+  html += '</div></div>';
+  return html;
+}
+function renderTogether(todayStr, today) {
+  const childKeys = Object.keys(CHILDREN);
+  const summaries = childKeys.map(function(key) {
+    const childData = state.children[key], info = CHILDREN[key];
+    const total = sumPoints(childData.dates), level = getLevel(key, total);
+    const streak = calcStreak(childData.dates, today);
+    const todayDone = (childData.dates[todayStr] || []).length;
+    return { key: key, info: info, total: total, level: level, streak: streak, todayDone: todayDone };
+  });
+  const sorted = summaries.slice().sort(function(a,b){ return b.todayDone - a.todayDone; });
+  const leader = sorted[0], trailer = sorted[1], isTie = leader.todayDone === trailer.todayDone;
+  let html = '<div class="section-pad">';
+  html += '<div class="together-grid">';
+  summaries.forEach(function(s) {
+    html += '<button class="together-card" data-action="selectChild" data-child="' + s.key + '" style="background:' + s.info.accentSoft + ';">' +
+      mascotSVG(s.key, s.level.stage, 52) +
+      '<div class="together-name">' + s.info.emoji + ' ' + s.info.name + '</div>' +
+      '<div class="together-level">' + esc(s.level.name) + '</div>' +
+      '<div class="together-today-track"><div class="together-today-fill" style="width:' + (s.todayDone/TODAY_MAX*100) + '%;background:' + s.info.accent + ';"></div></div>' +
+      '<div class="together-today-label">きょう ' + s.todayDone + '/' + TODAY_MAX + '</div>' +
+      '<div class="together-stats"><span>🔥 ' + s.streak + '</span><span>🏆 ' + s.total + '</span></div>' +
+    '</button>';
+  });
+  html += '</div>';
+  html += '<div class="vs-banner">' + (isTie ? 'きょうは ひきわけ！🤝' : 'きょうは ' + leader.info.emoji + leader.info.name + ' が ' + (leader.todayDone - trailer.todayDone) + 'こ リード中！') + '</div>';
+  html += '<div class="section-title">今週のきほんメニュー くらべっこ</div>';
+  html += '<div class="chart-legend">' + childKeys.map(function(key){ return '<div style="display:flex;align-items:center;gap:5px;"><span class="legend-dot" style="background:' + CHILDREN[key].accent + ';"></span><span style="font-size:12px;color:#7A8A99;">' + CHILDREN[key].name + '</span></div>'; }).join('') + '</div>';
+  const weekData = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = toDateStr(d);
+    const row = { label: ["日","月","火","水","木","金","土"][d.getDay()] };
+    childKeys.forEach(function(key) { row[key] = coreDoneCount(state.children[key].dates[ds] || []); });
+    weekData.push(row);
+  }
+  html += '<div class="chart-card"><div class="chart-bars">';
+  weekData.forEach(function(row) {
+    html += '<div class="chart-bar-col"><div style="display:flex;gap:2px;width:100%;height:100px;align-items:flex-end;">';
+    childKeys.forEach(function(key) {
+      const h = (row[key] / CORE_IDS.length) * 100;
+      html += '<div class="chart-bar-track" style="height:100px;"><div class="chart-bar" style="height:' + h + '%;background:' + CHILDREN[key].accent + ';width:100%;"></div></div>';
+    });
+    html += '</div><div class="chart-bar-label">' + row.label + '</div></div>';
+  });
+  html += '</div></div></div>';
+  return html;
+}
+function renderRecords(childData, childKey, childInfo, totalPoints, streak, level, todayStr) {
+  const currentTier = getTier(childData.startDate, todayStr, childData.baseTier);
+  const totalDaysActive = Object.values(childData.dates).filter(function(a){return a.length>0;}).length;
+  const last7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = toDateStr(d);
+    const done = coreDoneCount(childData.dates[ds] || []);
+    last7.push({ label: ["日","月","火","水","木","金","土"][d.getDay()], value: done, isToday: i === 0 });
+  }
+  let html = '<div class="section-pad">';
+  html += '<div class="stats-row">' +
+    '<div class="stat-card"><span class="stat-icon">🏆</span><div class="stat-value">' + totalPoints + 'こ</div><div class="stat-label">累計スタンプ</div></div>' +
+    '<div class="stat-card"><span class="stat-icon">🔥</span><div class="stat-value">' + streak + '日</div><div class="stat-label">連続日数</div></div>' +
+    '<div class="stat-card"><span class="stat-icon">📅</span><div class="stat-value">' + totalDaysActive + '日</div><div class="stat-label">がんばった日</div></div>' +
+  '</div>';
+  html += '<div class="tree-stat-card" style="background:' + childInfo.accentSoft + ';">' + mascotSVG(childKey, level.stage, 64) +
+    '<div><div class="tree-stat-name">' + esc(level.name) + '</div><div class="tree-stat-sub">' + (level.next ? 'つぎまで あと ' + (level.next.min - totalPoints) + 'こ' : 'さいだいレベル！') + '</div></div></div>';
+  html += '<button class="tier-banner" data-action="openLevelPicker" data-child="' + childKey + '" style="border-color:' + childInfo.accent + ';">いまの ' + esc(CORE_TIERS[currentTier].label) + ' <span style="font-size:12px;">✏️</span></button>';
+  html += '<div class="section-title">今週のきろく</div>';
+  html += '<div class="chart-card"><div class="chart-bars">';
+  last7.forEach(function(row) {
+    const h = (row.value / CORE_IDS.length) * 100;
+    const color = row.isToday ? childInfo.accent : row.value >= CORE_IDS.length ? "#5FB85C" : row.value > 0 ? "#9ED89A" : "#E3ECF2";
+    html += '<div class="chart-bar-col"><div class="chart-bar-track"><div class="chart-bar" style="height:' + h + '%;background:' + color + ';"></div></div><div class="chart-bar-label">' + row.label + '</div></div>';
+  });
+  html += '</div></div></div>';
+  return html;
+}
+function renderLevelPickerModal(childKey) {
+  const info = CHILDREN[childKey];
+  const childData = state.children[childKey];
+  const todayStr = toDateStr(new Date());
+  const currentTier = getTier(childData.startDate, todayStr, childData.baseTier);
+  let html = '<div class="modal-overlay" data-action="closeLevelPicker"><div class="modal-card" onclick="event.stopPropagation()">';
+  html += '<div class="modal-head"><div class="modal-title">' + info.emoji + ' ' + info.name + ' のレベルをえらぶ</div><button class="close-btn" data-action="closeLevelPicker">✕</button></div>';
+  html += '<div class="level-picker-list">';
+  CORE_TIERS.forEach(function(t, idx) {
+    const selected = idx === currentTier;
+    html += '<button class="level-option" data-action="selectTier" data-child="' + childKey + '" data-tier="' + idx + '" style="' + (selected ? 'border-color:' + info.accent + ';background:' + info.accent + '14;' : '') + '">' +
+      '<div class="level-option-head"><span class="level-option-title">' + esc(t.label) + '</span>' + (selected ? '<span style="font-family:var(--font-display);font-weight:700;font-size:11px;color:' + info.accent + ';">えらんでいる ✓</span>' : '') + '</div>' +
+      '<div class="level-option-desc">' + t.items.map(function(i){return i.name;}).join('・') + '</div>' +
+    '</button>';
+  });
+  html += '</div><div class="level-picker-note">えらんだレベルから、また2週間ごとにレベルアップしていきます</div></div></div>';
+  return html;
+}
+function renderTabBar() {
+  const tabs = [
+    { id: "today", label: "きょう", icon: "🏠" },
+    { id: "calendar", label: "カレンダー", icon: "📅" },
+    { id: "together", label: "ふたり", icon: "👨‍👩‍👧‍👦" },
+    { id: "records", label: "きろく", icon: "📊" },
+  ];
+  const activeAccent = CHILDREN[activeChild].accent;
+  return '<nav class="tab-bar">' + tabs.map(function(t) {
+    const active = uiTab === t.id;
+    const color = active ? (t.id === "together" ? "#3E9C87" : activeAccent) : "#9AA9B5";
+    return '<button class="tab-btn" data-action="setTab" data-tab="' + t.id + '"><span class="tab-icon">' + t.icon + '</span><span class="tab-label" style="color:' + color + ';font-weight:' + (active?700:400) + ';">' + t.label + '</span></button>';
+  }).join('') + '</nav>';
+}
+
+/* ---------- Main render ---------- */
+function render() {
+  const app = document.getElementById("app");
+
+  if (!isLoaded || !state) {
+    app.innerHTML = '<div class="loading-screen"><div style="font-size:40px;">🌱</div><div style="margin-top:8px;color:#557A5C;font-family:var(--font-body);">よみこみちゅう...</div></div>';
+    return;
+  }
+
+  const activeChildData = state.children[activeChild];
+  const childInfo = CHILDREN[activeChild];
+  const totalPoints = sumPoints(activeChildData.dates);
+  const level = getLevel(activeChild, totalPoints);
+  const today = new Date(), todayStr = toDateStr(today);
+  const streak = calcStreak(activeChildData.dates, today);
+
+  let main = "";
+  if (uiTab === "today") main = renderToday(activeChild, childInfo.accent, activeChildData.startDate, activeChildData.baseTier, activeChildData.dates[todayStr] || []);
+  else if (uiTab === "calendar") main = renderCalendar(activeChildData, childInfo.accent, todayStr);
+  else if (uiTab === "together") main = renderTogether(todayStr, today);
+  else if (uiTab === "records") main = renderRecords(activeChildData, activeChild, childInfo, totalPoints, streak, level, todayStr);
+
+  let html = '<div class="page"><div class="container">';
+  html += renderSwitcher();
+  html += renderHeader(childInfo, activeChild, level, totalPoints, streak);
+  if (syncError) html += '<div class="error-banner">どうきできませんでした。つうしんじょうきょうを確認してね。</div>';
+  html += '<main class="main">' + main + '</main>';
+  html += renderTabBar();
+  if (selectedDate) html += renderDayModal(activeChild, childInfo.accent, activeChildData.startDate, activeChildData.baseTier, selectedDate, activeChildData.dates[selectedDate] || []);
+  if (levelPickerChild) html += renderLevelPickerModal(levelPickerChild);
+  html += '</div></div>';
+  app.innerHTML = html;
+
+  if (lastToggled) {
+    const el = app.querySelector('[data-stamp="' + lastToggled + '"]');
+    if (el) { el.classList.add("pop"); setTimeout(function(){ el.classList.remove("pop"); }, 600); }
+    lastToggled = null;
+  }
+}
+
+/* ---------- Actions ---------- */
+function toggleItem(childKey, dateStr, itemId) {
+  const childData = state.children[childKey];
+  const dates = Object.assign({}, childData.dates);
+  const set = new Set(dates[dateStr] || []);
+  const willCheck = !set.has(itemId);
+  if (willCheck) set.add(itemId); else set.delete(itemId);
+  dates[dateStr] = Array.from(set);
+  state.children[childKey] = Object.assign({}, childData, { dates: dates });
+  pushState();
+  if (willCheck) lastToggled = itemId;
+  if (CORE_IDS.includes(itemId)) {
+    const ratio = coreDoneCount(dates[dateStr]) / CORE_IDS.length;
+    todayMessage = pickMessage(ratio);
+  }
+}
+function setChildTier(childKey, tierIndex) {
+  const childData = state.children[childKey];
+  const todayIso = toDateStr(new Date());
+  state.children[childKey] = Object.assign({}, childData, { baseTier: tierIndex, startDate: todayIso });
+  pushState();
+  levelPickerChild = null;
+}
+
+document.addEventListener("click", function(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const action = target.dataset.action;
+  if (action === "selectChild") { setActiveChild(target.dataset.child); }
+  else if (action === "setTab") { uiTab = target.dataset.tab; }
+  else if (action === "toggleItem") { toggleItem(target.dataset.child, target.dataset.date, target.dataset.item); }
+  else if (action === "calPrev") { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); }
+  else if (action === "calNext") { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); }
+  else if (action === "selectDay") { selectedDate = target.dataset.date; }
+  else if (action === "closeDayModal") { selectedDate = null; }
+  else if (action === "openLevelPicker") { levelPickerChild = target.dataset.child; }
+  else if (action === "closeLevelPicker") { levelPickerChild = null; }
+  else if (action === "selectTier") { setChildTier(target.dataset.child, parseInt(target.dataset.tier, 10)); }
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
