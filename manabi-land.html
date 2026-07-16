@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.7.0/dist/hanzi-writer.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none; touch-action:manipulation; }
   :root { --kaisho:"Klee One","YuKyokasho Yoshinao","Yu Kyokasho","Hiragino Mincho ProN","Yu Mincho",serif; }
@@ -232,6 +234,7 @@
       <button class="exbtn" onclick="go('garage')"><span class="eic">🚗</span><span>マイカー</span></button>
       <button class="exbtn" onclick="go('calendar')"><span class="eic">📅</span><span>きろく</span></button>
       <button class="exbtn" onclick="go('fixup')"><span class="eic">🔁</span><span>なおし</span><span class="badge" id="fixBadge" style="display:none">0</span></button>
+      <button class="exbtn" onclick="go('share')"><span class="eic">👨‍👩‍👧</span><span>きろく共有</span><span class="badge" id="syncDot" style="display:none;background:#3fc06d">●</span></button>
     </div>
     <div class="stars" style="margin:14px auto 0" id="homeStars">⭐ 0</div>
   </div>
@@ -244,6 +247,83 @@
 <div id="evo"><div class="big">✨ しんか！ ✨</div><div id="evoCar"></div><div class="cn" id="evoName"></div><button class="cls" onclick="closeEvo()">やったー！</button></div>
 
 <script>
+/* ================================================================
+   Firebase せってい（きろく共有）
+   ↓↓↓ ここに 自分の Firebase config を はりつけてください ↓↓↓
+   （手順は setup-firebase.md を見てね。config は秘密情報ではありません）
+   ================================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBoPs04q846991M8uE_p3e5h4tUo-SSEao",
+  authDomain: "kaio-study-program.firebaseapp.com",
+  databaseURL: "https://kaio-study-program-default-rtdb.firebaseio.com",
+  projectId: "kaio-study-program",
+  storageBucket: "kaio-study-program.firebasestorage.app",
+  messagingSenderId: "229010292477",
+  appId: "1:229010292477:web:2011a6bfa4feec7b3b8894",
+  measurementId: "G-4TMW9K3QW7"
+};
+const FIREBASE_OK = FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf('PASTE')<0 && (FIREBASE_CONFIG.databaseURL||'').indexOf('PASTE')<0;
+
+/* ============ CLOUD 同期（Firebase・家族コード） ============ */
+const Cloud = {
+  db:null, ref:null, ready:false, online:false, code:null,
+  cleanKey(s){ return String(s).replace(/[.#$\/\[\]]/g,'_'); },
+  opKey(op){ return op==='+'?'add':op==='-'?'sub':'mul'; },
+  available(){ return this.ready; },
+  init(){
+    if(typeof firebase==='undefined' || !FIREBASE_OK){ updateSyncDot(); return; }
+    try{ if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG); this.db=firebase.database(); this.ready=true; }
+    catch(e){ this.ready=false; }
+    let saved=null; try{ saved=localStorage.getItem('ml_family'); }catch(e){}
+    if(this.ready && saved) this.start(saved);
+    updateSyncDot();
+  },
+  start(code){
+    if(!this.ready) return;
+    this.code=code; try{ localStorage.setItem('ml_family', code); }catch(e){}
+    if(this.ref){ try{ this.ref.off(); }catch(e){} }
+    this.ref=this.db.ref('families/'+this.cleanKey(code));
+    const self=this;
+    this.ref.once('value').then(function(snap){
+      if(!snap.exists()){ self.ref.set(self.localSeed()); }
+      self.ref.on('value', function(s){ Cloud.applyRemote(s.val()); });
+      self.online=true; self.updateStatus(); updateSyncDot();
+    }).catch(function(){ self.online=false; self.updateStatus(); updateSyncDot(); });
+  },
+  localSeed(){
+    const hist=loadHist(); const wm={}; loadWrong().forEach(function(it){ wm[Cloud.cleanKey(it.id)]=it; });
+    const bl=loadBest(); const best={}; if(bl['+']!=null)best.add=bl['+']; if(bl['-']!=null)best.sub=bl['-']; if(bl['x']!=null)best.mul=bl['x'];
+    return { stars: stars, carseen: seenCar(), history: hist, wrong: wm, best: best, updated: Date.now() };
+  },
+  applyRemote(d){
+    d=d||{};
+    stars = d.stars||0; try{ localStorage.setItem('ml_stars', stars); }catch(e){}
+    try{ localStorage.setItem('ml_hist', JSON.stringify(d.history||{})); }catch(e){}
+    const wm=d.wrong||{}; const arr=Object.keys(wm).map(function(k){ return wm[k]; });
+    try{ localStorage.setItem('ml_wrong', JSON.stringify(arr)); }catch(e){}
+    const b=d.best||{}; const bl={}; if(b.add!=null)bl['+']=b.add; if(b.sub!=null)bl['-']=b.sub; if(b.mul!=null)bl['x']=b.mul;
+    try{ localStorage.setItem('ml_masubest', JSON.stringify(bl)); }catch(e){}
+    if(d.carseen!=null){ try{ localStorage.setItem('ml_carseen', d.carseen); }catch(e){} }
+    refreshUI();
+  },
+  incHistory(date,cat,ok){ if(!this.ref)return; try{ const inc=firebase.database.ServerValue.increment; const p='history/'+date+'/'; const u={};
+    u[p+cat]=inc(1); u[p+'total']=inc(1); u[p+(ok?'correct':'wrong')]=inc(1); u['updated']=Date.now(); this.ref.update(u).catch(function(){}); }catch(e){} },
+  incStars(n){ if(!this.ref)return; try{ this.ref.child('stars').set(firebase.database.ServerValue.increment(n)).catch(function(){}); }catch(e){} },
+  setWrong(id,item){ if(!this.ref)return; try{ this.ref.child('wrong/'+this.cleanKey(id)).set(item).catch(function(){}); }catch(e){} },
+  delWrong(id){ if(!this.ref)return; try{ this.ref.child('wrong/'+this.cleanKey(id)).remove().catch(function(){}); }catch(e){} },
+  setBest(op,ms){ if(!this.ref)return; try{ this.ref.child('best/'+this.opKey(op)).set(ms).catch(function(){}); }catch(e){} },
+  setCarseen(n){ if(!this.ref)return; try{ this.ref.child('carseen').set(n).catch(function(){}); }catch(e){} },
+  statusText(){
+    if(!FIREBASE_OK) return '⚠️ Firebase の せってい（config）が まだです';
+    if(!this.ready) return '⚠️ せつぞくエラー';
+    if(!this.code) return 'コードを いれて「つなぐ」を おしてね';
+    return this.online? ('🟢 「'+this.code+'」で 同期中です'):('つないでいます... コード：'+this.code);
+  },
+  updateStatus(){ const el=document.getElementById('famStatus'); if(el) el.textContent=this.statusText(); }
+};
+function updateSyncDot(){ const d=document.getElementById('syncDot'); if(!d) return; d.style.display=(Cloud.ready&&Cloud.online)?'flex':'none'; }
+function refreshUI(){ updateStars(); if(document.getElementById('calGrid')) renderCal(); if(document.querySelector('.carStage')) renderGarage(); if(document.getElementById('famStatus')) Cloud.updateStatus(); }
+
 /* ============ DATA ============ */
 // 小学1年 常用漢字 80字（よみ・れい）
 const KANJI1 = [
@@ -321,8 +401,8 @@ const mascots = ["🦊","🐰","🐻","🐱","🐶","🐼","🐨","🦁","🐯",
 function saveStars(){ try{ localStorage.setItem('ml_stars', stars); }catch(e){} updateStars(); }
 function updateStars(){ const h=document.getElementById('homeStars'); if(h) h.textContent = "⭐ "+stars;
   const s=document.getElementById('barStars'); if(s) s.textContent="⭐ "+stars;
-  renderHomeLvl(); updateFixBadge(); }
-function addStar(n){ stars+=n; saveStars(); checkEvolve(); }
+  renderHomeLvl(); updateFixBadge(); updateSyncDot(); }
+function addStar(n){ stars+=n; saveStars(); Cloud.incStars(n); checkEvolve(); }
 
 /* ---- XP / LEVEL / CAR ---- */
 // XP = 累計スター（勉強量）。レベルは細かい段階、車は大きな進化。
@@ -347,7 +427,7 @@ function levelInfo(){ const L=level();
   const cur=(L-1)*(L-1)*4, next=L*L*4; // xp needed for L and L+1
   return {L, cur, next, into:xp()-cur, span:next-cur}; }
 function seenCar(){ try{ return parseInt(localStorage.getItem('ml_carseen')||'0')||0; }catch(e){ return 0; } }
-function setSeenCar(i){ try{ localStorage.setItem('ml_carseen', i); }catch(e){} }
+function setSeenCar(i){ try{ localStorage.setItem('ml_carseen', i); }catch(e){} Cloud.setCarseen(i); }
 function checkEvolve(){ const ci=carIndex(); if(ci>seenCar()){ setSeenCar(ci); showEvo(ci); } }
 function showEvo(ci){ const c=CARS[ci];
   $('evoCar').innerHTML=drawCar(ci); $('evoName').textContent="「"+c.name+"」になった！ Lv."+level();
@@ -407,6 +487,7 @@ function record(cat, ok){
   const d = h[k] || {kanji:0,math:0,kuku:0,kata:0,correct:0,wrong:0,total:0};
   d[cat]=(d[cat]||0)+1; d.total++; if(ok) d.correct++; else d.wrong++;
   h[k]=d; saveHist(h);
+  Cloud.incHistory(k, cat, ok);
 }
 function streakDays(){ const h=loadHist(); let n=0; let d=new Date();
   for(;;){ if(h[todayKey(d)]){ n++; d.setDate(d.getDate()-1); } else break; } return n; }
@@ -414,8 +495,8 @@ function streakDays(){ const h=loadHist(); let n=0; let d=new Date();
 /* ---- WRONG QUEUE (なおし) ---- */
 function loadWrong(){ try{ return JSON.parse(localStorage.getItem('ml_wrong')||'[]'); }catch(e){ return []; } }
 function saveWrong(w){ try{ localStorage.setItem('ml_wrong', JSON.stringify(w)); }catch(e){} updateFixBadge(); }
-function addWrong(item){ const w=loadWrong(); if(!w.some(x=>x.id===item.id)){ w.push(item); saveWrong(w); } }
-function removeWrong(id){ let w=loadWrong().filter(x=>x.id!==id); saveWrong(w); }
+function addWrong(item){ const w=loadWrong(); if(!w.some(x=>x.id===item.id)){ w.push(item); saveWrong(w); Cloud.setWrong(item.id,item); } }
+function removeWrong(id){ let w=loadWrong().filter(x=>x.id!==id); saveWrong(w); Cloud.delWrong(id); }
 function updateFixBadge(){ const b=document.getElementById('fixBadge'); if(!b) return;
   const n=loadWrong().length; if(n>0){ b.style.display='flex'; b.textContent=n; } else b.style.display='none'; }
 
@@ -947,7 +1028,7 @@ function masuKey(n){
 function finishMasu(){
   if(masuTimerId){ clearInterval(masuTimerId); masuTimerId=null; } keepAwake(false);
   const elapsed=Date.now()-masuStart; const b=loadBest(); const prev=b[masuOp];
-  const isBest = !prev || elapsed<prev; if(isBest){ b[masuOp]=elapsed; saveBest(b); }
+  const isBest = !prev || elapsed<prev; if(isBest){ b[masuOp]=elapsed; saveBest(b); Cloud.setBest(masuOp, elapsed); }
   addStar(10); confetti(); confetti(); sndGood();
   sub().innerHTML=bar('100マス')+`<div class="center">
     <div style="font-size:70px">${isBest?'🏆':'🎉'}</div>
@@ -1048,9 +1129,41 @@ function renderPrint(){
   </div>`;
 }
 
+/* ============ SHARE / きろく共有 せってい ============ */
+BUILDERS.share=function(){
+  const code=Cloud.code||'';
+  const setupNeeded=!FIREBASE_OK;
+  sub().innerHTML = bar('きろく共有') + `<div class="center">
+    <div style="font-size:52px">👨‍👩‍👧</div>
+    <div class="info">かぞくの「あいことばコード」を いれると、パパ・ママ・こどもの たんまつで <b>おなじ きろく</b>を 見られます。</div>
+    <div class="card" style="max-width:440px">
+      <div class="prompt">あいことばコード</div>
+      <input id="famInput" value="${code}" placeholder="れい：yoshida-kaio-2026"
+        autocapitalize="off" autocorrect="off" spellcheck="false"
+        style="font-size:20px;padding:12px;border:2px solid #ddd;border-radius:14px;width:92%;text-align:center;font-family:inherit">
+      <div class="rowbtns" style="margin-top:12px">
+        <button class="bigbtn bb-c" style="min-width:auto;padding:14px 28px" onclick="applyFamily()">🔗 つなぐ</button>
+      </div>
+      <div class="best" id="famStatus">${Cloud.statusText()}</div>
+    </div>
+    ${setupNeeded
+      ? `<div class="info" style="color:#e06060">⚠️ さいしょに Firebase の せってい が ひつようです。<br>「setup-firebase.md」の てじゅんを 見て、config を はりつけてね。</div>`
+      : `<div class="info">おなじ コードを <b>ほかの端末</b>にも いれれば、じどうで 同期します。<br>コードは だれにも おしえないでね（それが パスワードがわり）。</div>`}
+    <div class="info" style="font-size:14px;opacity:.8">きろくは この端末にも のこるので、ネットが なくても あそべます。</div>
+  </div>`;
+};
+function applyFamily(){
+  const el=$('famInput'); if(!el) return; const v=(el.value||'').trim();
+  const st=$('famStatus');
+  if(!v){ if(st) st.textContent='コードを いれてね'; return; }
+  if(!Cloud.available()){ if(st) st.textContent='⚠️ 先に Firebase config を せっていしてください'; return; }
+  if(st) st.textContent='つないでいます...'; sndTap(); Cloud.start(v);
+}
+
 /* init */
 $('homeMascot').textContent = mascots[0];
 renderHomeLvl(); updateFixBadge();
+Cloud.init();
 </script>
 </body>
 </html>
