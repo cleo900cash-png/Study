@@ -876,7 +876,7 @@ let calYM=null;
 BUILDERS.calendar=function(){ const d=new Date(); calYM={y:d.getFullYear(),m:d.getMonth()}; renderCal(); };
 function calShift(d){ calYM.m+=d; if(calYM.m<0){calYM.m=11;calYM.y--;} if(calYM.m>11){calYM.m=0;calYM.y++;} renderCal(); }
 function renderCal(){
-  const h=loadHist(); const {y,m}=calYM;
+  const h=loadHist(); const mh=loadMasuHist(); const {y,m}=calYM;
   const first=new Date(y,m,1).getDay(); const days=new Date(y,m+1,0).getDate(); const tkey=todayKey();
   let cells='';
   for(let i=0;i<first;i++) cells+=`<div class="calCell empty"></div>`;
@@ -884,6 +884,7 @@ function renderCal(){
     const key=y+'-'+String(m+1).padStart(2,'0')+'-'+String(dn).padStart(2,'0');
     const rec=h[key]; let cls='calCell'; let dot='';
     if(rec){ const t=rec.total; cls+= t>=30?' s3': t>=15?' s2':' s1'; dot=`<span class="dot">${t>=30?'🚗':t>=15?'⭐':'✏️'}</span>`; }
+    if(mh[key]){ if(!dot){ cls+=' s1'; } dot+='<span class="dot">⏱️</span>'; }
     if(key===tkey) cls+=' today';
     cells+=`<div class="${cls}" onclick="showDay('${key}')">${dn}${dot}</div>`;
   }
@@ -901,13 +902,27 @@ function renderCal(){
   </div>`;
 }
 function showDay(key){
-  const rec=loadHist()[key]; const box=$('dayBox'); if(!box) return;
-  if(!rec){ box.innerHTML=`<div class="dayDetail" style="text-align:center">この日は おやすみ 😴</div>`; return; }
-  const cats=[['かんじ','kanji','#ff6f91'],['けいさん','math','#33b5e5'],['九九','kuku','#7c6ff0'],['カタカナ','kata','#f6a13c']];
-  const max=Math.max(1,...cats.map(c=>rec[c[1]]||0));
-  const rows=cats.map(c=>`<div class="barRow"><span style="width:74px">${c[0]}</span><div class="track"><div class="fillb" style="width:${Math.round((rec[c[1]]||0)/max*100)}%;background:${c[2]}"></div></div><span>${rec[c[1]]||0}</span></div>`).join('');
-  const rate = rec.total? Math.round(rec.correct/rec.total*100):0;
-  box.innerHTML=`<div class="dayDetail"><div style="font-weight:800;color:#5a4a7a;margin-bottom:6px">📅 ${key}　${rec.total}もん・せいかい ${rate}%</div>${rows}</div>`;
+  var rec=loadHist()[key]; var box=$('dayBox'); if(!box) return;
+  var mh=loadMasuHist()[key];
+  if(!rec && !mh){ box.innerHTML='<div class="dayDetail" style="text-align:center">この日は おやすみ 😴</div>'; return; }
+  var html='<div class="dayDetail">';
+  if(rec){
+    var cats=[['かんじ','kanji','#ff6f91'],['けいさん','math','#33b5e5'],['九九','kuku','#7c6ff0'],['カタカナ','kata','#f6a13c']];
+    var mx=1; for(var i=0;i<cats.length;i++){ var vv=rec[cats[i][1]]||0; if(vv>mx)mx=vv; }
+    var rows='';
+    for(var i=0;i<cats.length;i++){ var c=cats[i]; var v=rec[c[1]]||0; rows+='<div class="barRow"><span style="width:74px">'+c[0]+'</span><div class="track"><div class="fillb" style="width:'+Math.round(v/mx*100)+'%;background:'+c[2]+'"></div></div><span>'+v+'</span></div>'; }
+    var rate = rec.total? Math.round(rec.correct/rec.total*100):0;
+    html+='<div style="font-weight:800;color:#5a4a7a;margin-bottom:6px">📅 '+key+'　'+rec.total+'もん・せいかい '+rate+'%</div>'+rows;
+  } else {
+    html+='<div style="font-weight:800;color:#5a4a7a;margin-bottom:6px">📅 '+key+'</div>';
+  }
+  if(mh){
+    var ops=['+','-','x']; var mrows='';
+    for(var j=0;j<ops.length;j++){ var op=ops[j]; var arr=mh[op]; if(arr && arr.length){ var best=arr[0]; for(var k2=1;k2<arr.length;k2++){ if(arr[k2]<best)best=arr[k2]; } mrows+='<div class="barRow"><span style="width:74px">⏱️'+OPLBL[op]+'</span><span style="flex:1">'+arr.length+'かい</span><span>ベスト '+(best/1000).toFixed(1)+'びょう</span></div>'; } }
+    if(mrows) html+='<div style="font-weight:800;color:#5a4a7a;margin:8px 0 4px">⏱️ 100マス タイム</div>'+mrows;
+  }
+  html+='</div>';
+  box.innerHTML=html;
 }
 
 /* ============ FIXUP / なおしタイム ============ */
@@ -964,6 +979,10 @@ function fMathGo(){ if(fixInput==='')return; const it=fixQueue[fixIdx]; const bo
 let masuOp='+', masuTop=[], masuLeft=[], masuAns=[], masuCur=0, masuInput='', masuStart=0, masuTimerId=null;
 function loadBest(){ try{ return JSON.parse(localStorage.getItem('ml_masubest')||'{}'); }catch(e){ return {}; } }
 function saveBest(b){ try{ localStorage.setItem('ml_masubest', JSON.stringify(b)); }catch(e){} }
+function loadMasuHist(){ try{ return JSON.parse(localStorage.getItem('ml_masutime')||'{}'); }catch(e){ return {}; } }
+function saveMasuHist(h){ try{ localStorage.setItem('ml_masutime', JSON.stringify(h)); }catch(e){} }
+function recordMasuTime(op,ms){ var h=loadMasuHist(); var k=todayKey(); var d=h[k]||{}; if(!d[op])d[op]=[]; d[op].push(Math.round(ms)); h[k]=d; saveMasuHist(h); }
+var OPLBL={'+':'たし','-':'ひき','x':'かけ'};
 function fmtTime(ms){ return (ms/1000).toFixed(1)+'びょう'; }
 function bestStr(v){ return v? ` <span style="font-size:15px;opacity:.9">ベスト ${fmtTime(v)}</span>`:''; }
 BUILDERS.masuMenu=function(){
@@ -1027,7 +1046,7 @@ function masuKey(n){
 }
 function finishMasu(){
   if(masuTimerId){ clearInterval(masuTimerId); masuTimerId=null; } keepAwake(false);
-  const elapsed=Date.now()-masuStart; const b=loadBest(); const prev=b[masuOp];
+  const elapsed=Date.now()-masuStart; const b=loadBest(); const prev=b[masuOp]; recordMasuTime(masuOp, elapsed);
   const isBest = !prev || elapsed<prev; if(isBest){ b[masuOp]=elapsed; saveBest(b); Cloud.setBest(masuOp, elapsed); }
   addStar(10); confetti(); confetti(); sndGood();
   sub().innerHTML=bar('100マス')+`<div class="center">
@@ -1084,7 +1103,7 @@ function swToggle(){
   if(!swRunning){ swRunning=true; swStart=Date.now(); keepAwake(true);
     swId=setInterval(updateSWDisp,100); btn.textContent='⏸ ストップ'; btn.classList.remove('bb-b'); sndTap();
     btn.style.background='linear-gradient(145deg,#ff9a6b,#ff6f91)';
-  } else { swRunning=false; swElapsed=swNow(); if(swId){clearInterval(swId);swId=null;} keepAwake(false);
+  } else { swElapsed=swNow(); swRunning=false; if(swId){clearInterval(swId);swId=null;} keepAwake(false);
     try{ localStorage.setItem('ml_swlast', swElapsed); }catch(e){}
     updateSWDisp(); confetti(); sndGood(); renderSW();
   }
