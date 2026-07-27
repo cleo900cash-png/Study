@@ -301,7 +301,7 @@ const Cloud = {
   localSeed(){
     const hist=loadHist(); const wm={}; loadWrong().forEach(function(it){ wm[Cloud.cleanKey(it.id)]=it; });
     const bl=loadBest(); const best={}; if(bl['+']!=null)best.add=bl['+']; if(bl['-']!=null)best.sub=bl['-']; if(bl['x']!=null)best.mul=bl['x'];
-    return { stars: stars, carseen: seenCar(), history: hist, wrong: wm, best: best, masu: loadMasuHist(), updated: Date.now() };
+    return { stars: stars, carseen: seenCar(), history: hist, wrong: wm, best: best, masu: loadMasuHist(), masuruns: loadMasuRuns(), updated: Date.now() };
   },
   applyRemote(d){
     d=d||{};
@@ -313,6 +313,7 @@ const Cloud = {
     try{ localStorage.setItem('ml_masubest', JSON.stringify(bl)); }catch(e){}
     if(d.carseen!=null){ try{ localStorage.setItem('ml_carseen', d.carseen); }catch(e){} }
     if(d.masu){ try{ localStorage.setItem('ml_masutime', JSON.stringify(d.masu)); }catch(e){} }
+    if(d.masuruns){ try{ localStorage.setItem('ml_masuruns', JSON.stringify(d.masuruns)); }catch(e){} }
     refreshUI();
   },
   incHistory(date,cat,ok){ if(!this.ref)return; try{ const inc=firebase.database.ServerValue.increment; const p='history/'+date+'/'; const u={};
@@ -323,6 +324,7 @@ const Cloud = {
   setBest(op,ms){ if(!this.ref)return; try{ this.ref.child('best/'+this.opKey(op)).set(ms).catch(function(){}); }catch(e){} },
   setCarseen(n){ if(!this.ref)return; try{ this.ref.child('carseen').set(n).catch(function(){}); }catch(e){} },
   setMasu(obj){ if(!this.ref)return; try{ this.ref.child('masu').set(obj).catch(function(){}); }catch(e){} },
+  setMasuRuns(a){ if(!this.ref)return; try{ this.ref.child('masuruns').set(a).catch(function(){}); }catch(e){} },
   statusText(){
     if(!FIREBASE_OK) return '⚠️ Firebase の せってい（config）が まだです';
     if(!this.ready) return '⚠️ せつぞくエラー';
@@ -992,12 +994,15 @@ function fMathGo(){ if(fixInput==='')return; const it=fixQueue[fixIdx]; const bo
   else{ box.style.color='#e06060'; sndBad(); box.textContent=it.a+' 〇'; fixIdx++; setTimeout(renderFix,1500); } }
 
 /* ============ 100マス計算（陰山メソッド・タイムアタック） ============ */
-let masuOp='+', masuTop=[], masuLeft=[], masuAns=[], masuCur=0, masuInput='', masuStart=0, masuTimerId=null;
+let masuOp='+', masuTop=[], masuLeft=[], masuAns=[], masuCur=0, masuInput='', masuStart=0, masuTimerId=null, masuMiss=0, masuMissFlag={};
 function loadBest(){ try{ return JSON.parse(localStorage.getItem('ml_masubest')||'{}'); }catch(e){ return {}; } }
 function saveBest(b){ try{ localStorage.setItem('ml_masubest', JSON.stringify(b)); }catch(e){} }
 function loadMasuHist(){ try{ return JSON.parse(localStorage.getItem('ml_masutime')||'{}'); }catch(e){ return {}; } }
 function saveMasuHist(h){ try{ localStorage.setItem('ml_masutime', JSON.stringify(h)); }catch(e){} }
-function recordMasuTime(op,ms){ var h=loadMasuHist(); var k=todayKey(); var d=h[k]||{}; if(!d[op])d[op]=[]; d[op].push(Math.round(ms)); h[k]=d; saveMasuHist(h); try{Cloud.setMasu(h);}catch(e){} }
+function loadMasuRuns(){ try{ var v=JSON.parse(localStorage.getItem('ml_masuruns')||'[]'); if(Array.isArray(v)) return v; if(v&&typeof v==='object') return Object.keys(v).map(function(k){return v[k];}); return []; }catch(e){ return []; } }
+function saveMasuRuns(a){ try{ localStorage.setItem('ml_masuruns', JSON.stringify(a)); }catch(e){} }
+function recordMasuTime(op,ms,miss){ var h=loadMasuHist(); var k=todayKey(); var d=h[k]||{}; if(!d[op])d[op]=[]; d[op].push(Math.round(ms)); h[k]=d; saveMasuHist(h); try{Cloud.setMasu(h);}catch(e){}
+  var runs=loadMasuRuns(); runs.push({op:op, ms:Math.round(ms), miss:(miss==null?null:miss), date:k, ts:Date.now()}); saveMasuRuns(runs); try{Cloud.setMasuRuns(runs);}catch(e){} }
 var OPLBL={'+':'たし','-':'ひき','x':'かけ'};
 function fmtTime(ms){ return (ms/1000).toFixed(1)+'びょう'; }
 function bestStr(v){ return v? ` <span style="font-size:15px;opacity:.9">ベスト ${fmtTime(v)}</span>`:''; }
@@ -1018,35 +1023,49 @@ BUILDERS.masuMenu=function(){
 };
 function startMasu(op){ masuOp=op; go('masuPlay'); }
 let masuRankOp='all';
+let masuRankSort='time';
 var MASU_OPL={'+':'たす','-':'ひく','x':'かける'};
-function masuRankData(){ var h=loadMasuHist(); var rec=[];
+function masuRuns(){
+  var map={};
+  function K(op,date,ms){ return op+'|'+date+'|'+ms; }
+  var h=loadMasuHist();
   Object.keys(h).forEach(function(date){ var d=h[date]||{};
-    ['+','-','x'].forEach(function(op){ (d[op]||[]).forEach(function(ms){ rec.push({op:op,ms:ms,date:date}); }); }); });
-  return rec; }
+    ['+','-','x'].forEach(function(op){ (d[op]||[]).forEach(function(ms){
+      var k=K(op,date,ms); if(!map[k]) map[k]={op:op,ms:ms,date:date,miss:null}; }); }); });
+  loadMasuRuns().forEach(function(r){ if(r&&r.op!=null&&r.ms!=null){ map[K(r.op,r.date,r.ms)]={op:r.op,ms:r.ms,date:r.date,miss:(r.miss==null?null:r.miss)}; } });
+  return Object.keys(map).map(function(k){ return map[k]; });
+}
 function setMasuRankOp(op){ masuRankOp=op; BUILDERS.masuRank(); }
+function setMasuRankSort(s){ masuRankSort=s; BUILDERS.masuRank(); }
 BUILDERS.masuRank=function(){
-  var all=masuRankData();
+  var all=masuRuns();
   var list = masuRankOp==='all'? all : all.filter(function(r){ return r.op===masuRankOp; });
-  list.sort(function(a,b){ return a.ms-b.ms; });
+  if(masuRankSort==='miss'){ list.sort(function(a,b){ var am=(a.miss==null?9999:a.miss), bm=(b.miss==null?9999:b.miss); return (am-bm)||(a.ms-b.ms); }); }
+  else { list.sort(function(a,b){ return a.ms-b.ms; }); }
   var top=list.slice(0,30); var medals=['🥇','🥈','🥉'];
   var opts=[['all','ぜんぶ'],['+','たす'],['-','ひく'],['x','かける']];
   var chips=opts.map(function(o){ var on=masuRankOp===o[0];
     return '<button class="chip" style="'+(on?'background:#7c6ff0;color:#fff;border-color:#7c6ff0;':'')+'" onclick="setMasuRankOp(\''+o[0]+'\')">'+o[1]+'</button>'; }).join('');
+  var sorts=[['time','タイムじゅん'],['miss','ミスすくないじゅん']];
+  var schips=sorts.map(function(o){ var on=masuRankSort===o[0];
+    return '<button class="chip" style="'+(on?'background:#ff9a3c;color:#fff;border-color:#ff9a3c;':'')+'" onclick="setMasuRankSort(\''+o[0]+'\')">'+o[1]+'</button>'; }).join('');
   var rows='';
-  if(top.length===0){ rows='<tr><td colspan="4" style="padding:20px;color:#9a8aaa">まだ きろくが ないよ。100マスを クリアしてね！</td></tr>'; }
+  if(top.length===0){ rows='<tr><td colspan="5" style="padding:20px;color:#9a8aaa">まだ きろくが ないよ。100マスを クリアしてね！</td></tr>'; }
   else { top.forEach(function(r,i){ var rk=i<3?medals[i]:(i+1)+'い';
-    rows+='<tr><td style="font-weight:800">'+rk+'</td><td style="font-weight:800;color:#7c6ff0">'+fmtTime(r.ms)+'</td><td>'+MASU_OPL[r.op]+'</td><td style="color:#9a8aaa;font-size:15px">'+r.date+'</td></tr>'; }); }
+    var miss=(r.miss==null)?'—':(r.miss===0?'0 ✨':String(r.miss));
+    rows+='<tr><td style="font-weight:800">'+rk+'</td><td style="font-weight:800;color:#7c6ff0">'+fmtTime(r.ms)+'</td><td style="font-weight:700;color:#e0607a">'+miss+'</td><td>'+MASU_OPL[r.op]+'</td><td style="color:#9a8aaa;font-size:15px">'+r.date+'</td></tr>'; }); }
   sub().innerHTML=bar('100マス ランキング')+'<div class="center">'
-    +'<div class="info">はやい じゅんの ランキング！ タイムを ちぢめよう ⏱️</div>'
+    +'<div class="info">タイムと ミスの かずが のこるよ。ちぢめて／へらして いこう ⏱️</div>'
     +'<div class="rowbtns" style="flex-wrap:wrap;gap:6px">'+chips+'</div>'
-    +'<table class="rankTbl"><tr class="rankHdr"><td>じゅんい</td><td>タイム</td><td>しゅるい</td><td>ひづけ</td></tr>'+rows+'</table>'
-    +'<div class="info" style="font-size:14px;opacity:.8">かぞく みんなの きろくが まざって ランキングに なるよ</div>'
+    +'<div class="rowbtns" style="flex-wrap:wrap;gap:6px">'+schips+'</div>'
+    +'<table class="rankTbl"><tr class="rankHdr"><td>じゅんい</td><td>タイム</td><td>ミス</td><td>しゅるい</td><td>ひづけ</td></tr>'+rows+'</table>'
+    +'<div class="info" style="font-size:14px;opacity:.8">ミス＝100もん中 まちがえた もんだいの かず。かぞく みんなの きろくが まざるよ</div>'
     +'</div>';
 };
 BUILDERS.masuPlay=function(){ setupMasu(); };
 function opFn(a,b){ return masuOp==='+'? a+b : masuOp==='-'? a-b : a*b; }
 function setupMasu(){
-  masuInput=''; masuCur=0;
+  masuInput=''; masuCur=0; masuMiss=0; masuMissFlag={};
   if(masuOp==='-'){ masuTop=shuffle([10,11,12,13,14,15,16,17,18,19]); masuLeft=shuffle([1,2,3,4,5,6,7,8,9,0]); }
   else { masuTop=shuffle([2,3,4,5,6,7,8,9,1,0]); masuLeft=shuffle([2,3,4,5,6,7,8,9,1,0]); }
   masuAns=[];
@@ -1084,18 +1103,19 @@ function masuKey(n){
   masuInput+=n; const ans=String(masuAns[masuCur]); const el=$('mc-'+masuCur);
   if(masuInput===ans){ record('math',true); el.textContent=ans; el.classList.remove('cur'); el.classList.add('done');
     masuInput=''; masuCur++; sndTap(); if(masuCur>=100){ finishMasu(); } else highlightCur(); }
-  else if(!ans.startsWith(masuInput)){ record('math',false); masuInput=''; if(el) el.textContent=''; sndBad(); }
+  else if(!ans.startsWith(masuInput)){ record('math',false); if(!masuMissFlag[masuCur]){ masuMissFlag[masuCur]=1; masuMiss++; } masuInput=''; if(el) el.textContent=''; sndBad(); }
   else { if(el) el.textContent=masuInput; }
 }
 function finishMasu(){
   if(masuTimerId){ clearInterval(masuTimerId); masuTimerId=null; } keepAwake(false);
-  const elapsed=Date.now()-masuStart; const b=loadBest(); const prev=b[masuOp]; recordMasuTime(masuOp, elapsed);
+  const elapsed=Date.now()-masuStart; const b=loadBest(); const prev=b[masuOp]; const miss=masuMiss; recordMasuTime(masuOp, elapsed, miss);
   const isBest = !prev || elapsed<prev; if(isBest){ b[masuOp]=elapsed; saveBest(b); Cloud.setBest(masuOp, elapsed); }
   addStar(10); confetti(); confetti(); sndGood();
   sub().innerHTML=bar('100マス')+`<div class="center">
     <div style="font-size:70px">${isBest?'🏆':'🎉'}</div>
     <div style="font-size:26px;font-weight:900;color:#7c6ff0">タイム ${fmtTime(elapsed)}</div>
     ${isBest?'<div style="font-size:22px;font-weight:800;color:#ff6f91">じこベスト こうしん！✨</div>':'<div class="best">ベスト '+fmtTime(prev)+'</div>'}
+    <div style="font-size:20px;font-weight:800;color:#e0607a">${miss===0?'ぜんもん せいかい！🎯':'100もん中 '+(100-miss)+'もん せいかい（ミス '+miss+'）'}</div>
     <div class="info">${praise()}　⭐10 ゲット！</div>
     <div class="rowbtns"><button class="bigbtn bb-b" onclick="startMasu('${masuOp}')" style="min-width:auto;padding:16px 24px">もういちど</button>
       <button class="chip" onclick="go('masuMenu')">メニュー</button></div>
