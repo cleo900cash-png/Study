@@ -264,6 +264,10 @@ const FIREBASE_CONFIG = {
 };
 const FIREBASE_OK = FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf('PASTE')<0 && (FIREBASE_CONFIG.databaseURL||'').indexOf('PASTE')<0;
 
+/* 家族みんなで同じ記録を共有するための「共通コード」。
+   これを既定にすることで、どの端末も開いた瞬間に同じデータへ自動接続します。 */
+const DEFAULT_FAMILY = 'yoshida-kaio-home';
+
 /* ============ CLOUD 同期（Firebase・家族コード） ============ */
 const Cloud = {
   db:null, ref:null, ready:false, online:false, code:null,
@@ -275,7 +279,8 @@ const Cloud = {
     try{ if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG); this.db=firebase.database(); this.ready=true; }
     catch(e){ this.ready=false; }
     let saved=null; try{ saved=localStorage.getItem('ml_family'); }catch(e){}
-    if(this.ready && saved) this.start(saved);
+    // 保存済みコードがあればそれを、なければ共通コードで自動接続（全端末が同じ記録を共有）
+    if(this.ready) this.start(saved || DEFAULT_FAMILY);
     updateSyncDot();
   },
   start(code){
@@ -918,7 +923,7 @@ function showDay(key){
   }
   if(mh){
     var ops=['+','-','x']; var mrows='';
-    for(var j=0;j<ops.length;j++){ var op=ops[j]; var arr=mh[op]; if(arr && arr.length){ var best=arr[0]; for(var k2=1;k2<arr.length;k2++){ if(arr[k2]<best)best=arr[k2]; } mrows+='<div class="barRow"><span style="width:74px">⏱️'+OPLBL[op]+'</span><span style="flex:1">'+arr.length+'かい</span><span>ベスト '+(best/1000).toFixed(1)+'びょう</span></div>'; } }
+    for(var j=0;j<ops.length;j++){ var op=ops[j]; var arr=mh[op]; if(arr && arr.length){ var best=arr[0]; for(var k2=1;k2<arr.length;k2++){ if(arr[k2]<best)best=arr[k2]; } mrows+='<div class="barRow"><span style="width:74px">⏱️'+OPLBL[op]+'</span><span style="flex:1">'+arr.length+'かい</span><span>ベスト '+(best<60000?(best/1000).toFixed(1)+'びょう':Math.floor(best/60000)+'ふん'+Math.round((best%60000)/1000)+'びょう')+'</span></div>'; } }
     if(mrows) html+='<div style="font-weight:800;color:#5a4a7a;margin:8px 0 4px">⏱️ 100マス タイム</div>'+mrows;
   }
   html+='</div>';
@@ -1079,36 +1084,58 @@ function setAwakeTag(tag){
 document.addEventListener('visibilitychange',()=>{ if(wantAwake && document.visibilityState==='visible' && !wakeLock) keepAwake(true); });
 
 /* ============ STOPWATCH（紙の100マス用） ============ */
-let swRunning=false, swStart=0, swElapsed=0, swId=null;
+let swRunning=false, swStart=0, swElapsed=0, swId=null, swOp='+';
+var SWOPL={'+':'たしざん','-':'ひきざん','x':'かけざん'};
 BUILDERS.stopwatch=function(){ swRunning=false; swElapsed=0; renderSW(); };
-function fmtSW(ms){ const s=ms/1000; if(s<60) return s.toFixed(1); const m=Math.floor(s/60); const r=(s-m*60); return m+':'+(r<10?'0':'')+r.toFixed(1); }
+function fmtSW(ms){ var s=ms/1000; if(s<60) return s.toFixed(1); var m=Math.floor(s/60); var r=(s-m*60); return m+':'+(r<10?'0':'')+r.toFixed(1); }
 function swNow(){ return swElapsed + (swRunning? Date.now()-swStart : 0); }
+function swSetOp(op){ if(swRunning) return; swOp=op; renderSW(); }
+function swOpAdd(){ swSetOp('+'); }
+function swOpSub(){ swSetOp('-'); }
+function swOpMul(){ swSetOp('x'); }
 function renderSW(){
-  const b=loadBest(); const last=(()=>{try{return JSON.parse(localStorage.getItem('ml_swlast')||'null');}catch(e){return null;}})();
-  sub().innerHTML = bar('ストップウォッチ') + `<div class="center">
-    <div class="info">かみの 100マスを やるとき つかってね。<br>スタートで タイム、おわったら ストップ！</div>
-    <div class="swDisp" id="swDisp">0.0</div>
-    <div class="rowbtns">
-      <button class="bigbtn bb-b" id="swBtn" style="min-width:auto;padding:16px 34px" onclick="swToggle()">▶ スタート</button>
-      <button class="chip" onclick="swReset()">🔄 リセット</button>
-    </div>
-    ${last!=null?`<div class="best">まえのタイム：${fmtSW(last)}びょう</div>`:''}
-    <div class="awakeTag awakeOff" id="swAwake"></div>
-  </div>`;
-  updateSWDisp(); const t=$('swAwake'); if(t) setAwakeTag(t);
-}
-function updateSWDisp(){ const d=$('swDisp'); if(d) d.textContent=fmtSW(swNow()); }
-function swToggle(){
-  const btn=$('swBtn');
-  if(!swRunning){ swRunning=true; swStart=Date.now(); keepAwake(true);
-    swId=setInterval(updateSWDisp,100); btn.textContent='⏸ ストップ'; btn.classList.remove('bb-b'); sndTap();
-    btn.style.background='linear-gradient(145deg,#ff9a6b,#ff6f91)';
-  } else { swElapsed=swNow(); swRunning=false; if(swId){clearInterval(swId);swId=null;} keepAwake(false);
-    try{ localStorage.setItem('ml_swlast', swElapsed); }catch(e){}
-    updateSWDisp(); confetti(); sndGood(); renderSW();
+  var ops=[['+','swOpAdd'],['-','swOpSub'],['x','swOpMul']];
+  var chips='';
+  for(var i=0;i<ops.length;i++){ var o=ops[i][0]; var fn=ops[i][1];
+    var st=(swOp===o?'background:#7c6ff0;color:#fff;border-color:#7c6ff0;':'')+(swRunning?'opacity:.4;pointer-events:none;':'');
+    chips+='<button class="chip" style="'+st+'" onclick="'+fn+'()">'+SWOPL[o]+'</button>';
   }
+  var runLbl = swRunning? '⏸ いちじ停止' : (swElapsed>0? '▶ つづき' : '▶ スタート');
+  sub().innerHTML = bar('ストップウォッチ') + '<div class="center">'
+    + '<div class="info">かみの 100マスを やるとき つかってね。<br>もんだいを えらんで ▶スタート。おわったら ⏹おわり で きろく！</div>'
+    + '<div class="rowbtns">'+chips+'</div>'
+    + '<div class="swDisp" id="swDisp">0.0</div>'
+    + '<div class="rowbtns">'
+    + '<button class="bigbtn bb-b" id="swBtn" style="min-width:auto;padding:16px 30px" onclick="swToggle()">'+runLbl+'</button>'
+    + '<button class="bigbtn" id="swStop" style="min-width:auto;padding:16px 24px;background:linear-gradient(145deg,#ff6f91,#ff9a3c)" onclick="swFinish()">⏹ おわり</button>'
+    + '</div>'
+    + '<button class="chip" style="margin-top:2px" onclick="swReset()">🔄 リセット</button>'
+    + '<div class="awakeTag awakeOff" id="swAwake"></div>'
+    + '</div>';
+  updateSWDisp(); var t=$('swAwake'); if(t) setAwakeTag(t);
 }
-function swReset(){ swRunning=false; swElapsed=0; if(swId){clearInterval(swId);swId=null;} keepAwake(false); sndTap(); renderSW(); }
+function updateSWDisp(){ var d=$('swDisp'); if(d) d.textContent=fmtSW(swNow()); }
+function swToggle(){
+  if(!swRunning){ swRunning=true; swStart=Date.now(); keepAwake(true); if(swId) clearInterval(swId); swId=setInterval(updateSWDisp,100); sndTap(); }
+  else { swElapsed=swNow(); swRunning=false; if(swId){ clearInterval(swId); swId=null; } keepAwake(false); sndTap(); }
+  renderSW();
+}
+function swReset(){ swRunning=false; swElapsed=0; if(swId){ clearInterval(swId); swId=null; } keepAwake(false); renderSW(); }
+function swFinish(){
+  var t=swNow();
+  if(t<500){ swReset(); return; }
+  swRunning=false; if(swId){ clearInterval(swId); swId=null; } keepAwake(false);
+  recordMasuTime(swOp, t);
+  try{ localStorage.setItem('ml_swlast', Math.round(t)); }catch(e){}
+  swElapsed=0; if(typeof addStar==='function') addStar(5); confetti(); sndGood();
+  sub().innerHTML = bar('ストップウォッチ') + '<div class="center">'
+    + '<div style="font-size:70px">⏱️</div>'
+    + '<div style="font-size:24px;font-weight:900;color:#7c6ff0">'+SWOPL[swOp]+' タイム '+fmtSW(t)+'びょう</div>'
+    + '<div class="info">きろく しました！📅きろく で みられるよ　'+praise()+'</div>'
+    + '<div class="rowbtns"><button class="bigbtn bb-b" style="min-width:auto;padding:16px 24px" onclick="go(&#39;stopwatch&#39;)">もういちど</button>'
+    + '<button class="chip" onclick="go(&#39;calendar&#39;)">📅 きろく</button></div>'
+    + '</div>';
+}
 
 /* ============ 100マス プリント ============ */
 let pTop=[], pLeft=[], pOp='+', pShowAns=false;
