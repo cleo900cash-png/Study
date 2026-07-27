@@ -36,6 +36,13 @@
   .error-banner { margin: 0 16px 8px; padding: 8px 12px; background: #FFE3D9; color: #D9502C; border-radius: 10px; font-size: 12px; }
   .main { padding-bottom: 90px; }
   .date-row { margin-bottom: 12px; padding: 12px 16px 0; font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #2C3E50; }
+  .daynav { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 6px; gap: 8px; }
+  .daynav-btn { width: 40px; height: 40px; border-radius: 12px; background: #FFFFFFCC; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #2C3E50; box-shadow: 0 2px 6px rgba(0,0,0,0.06); flex-shrink: 0; }
+  .daynav-center { flex: 1; text-align: center; }
+  .daynav-date { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #2C3E50; }
+  .daynav-tag { font-family: var(--font-display); font-size: 12px; font-weight: 700; margin-top: 1px; }
+  .daynav-today { font-family: var(--font-display); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 20px; margin-top: 3px; }
+  .past-banner { text-align: center; background: #FFF4D6; color: #B77A00; font-family: var(--font-display); font-weight: 700; font-size: 13px; border-radius: 12px; padding: 8px 10px; margin-bottom: 10px; }
   .section-pad { padding: 0 16px; }
   .big-progress-track { position: relative; height: 26px; background: #FFFFFF; border-radius: 14px; overflow: hidden; box-shadow: inset 0 0 0 2px #E3ECF2; margin-bottom: 10px; }
   .big-progress-fill { height: 100%; border-radius: 14px; transition: width 0.4s ease; }
@@ -557,6 +564,7 @@ let uiTab = "today";
 let calMonth = new Date();
 let selectedDate = null;
 let levelPickerChild = null;
+let viewDateStr = toDateStr(new Date()); // 「きょう」タブで表示・記録している日（過去日の記録用）
 let todayMessage = pickMessage(0);
 let lastToggled = null;
 
@@ -596,16 +604,27 @@ function renderHeader(childInfo, activeChild, level, totalPoints, streak) {
   '</header>';
 }
 function renderToday(childKey, accent, startDate, baseTier, checked) {
-  const today = new Date(), dateStr = toDateStr(today);
+  const today = new Date(), todayStr = toDateStr(today);
+  const dateStr = viewDateStr;
+  const viewObj = new Date(dateStr + "T00:00:00");
+  const isToday = dateStr === todayStr;
+  const isPast = dateStr < todayStr;
   const tier = getTier(startDate, dateStr, baseTier);
   const coreDone = coreDoneCount(checked), bonusDone = bonusDoneCount(checked);
   const ratio = coreDone / CORE_IDS.length;
   const daysLeft = daysUntilNextTier(startDate, dateStr, baseTier);
-  const weekdayLabel = ["にちようび","げつようび","かようび","すいようび","もくようび","きんようび","どようび"][today.getDay()];
-  let html = '<div class="date-row">' + (today.getMonth()+1) + 'がつ' + today.getDate() + 'にち（' + weekdayLabel + '）</div>';
+  const weekdayLabel = ["にちようび","げつようび","かようび","すいようび","もくようび","きんようび","どようび"][viewObj.getDay()];
+  // 日付ナビ（過去日の記録用）: ◀ ぜんじつ / 日付 / よくじつ ▶
+  let html = '<div class="daynav">';
+  html += '<button class="daynav-btn" data-action="dayPrev">◀</button>';
+  html += '<div class="daynav-center"><div class="daynav-date">' + (viewObj.getMonth()+1) + 'がつ' + viewObj.getDate() + 'にち（' + weekdayLabel + '）</div>' +
+    (isToday ? '<div class="daynav-tag" style="color:' + accent + ';">きょう</div>' : '<button class="daynav-today" data-action="dayToday" style="color:' + accent + ';background:' + accent + '1A;">きょうにもどる</button>') + '</div>';
+  html += '<button class="daynav-btn" data-action="dayNext"' + (isToday ? ' disabled style="opacity:0.3;"' : '') + '>▶</button>';
+  html += '</div>';
   html += '<div class="section-pad">';
+  if (isPast) html += '<div class="past-banner">📅 ' + (viewObj.getMonth()+1) + 'がつ' + viewObj.getDate() + 'にち の きろくをつけています</div>';
   html += '<div class="big-progress-track"><div class="big-progress-fill" style="width:' + (ratio*100) + '%;background:linear-gradient(90deg,' + accent + '99,' + accent + ');"></div><span class="big-progress-label">' + coreDone + ' / ' + CORE_IDS.length + '</span></div>';
-  html += '<div class="message-banner" style="color:' + accent + ';">' + esc(todayMessage) + '</div>';
+  html += '<div class="message-banner" style="color:' + accent + ';">' + esc(isToday ? todayMessage : (ratio >= 1 ? 'この日は かんぺき！🌟' : ratio > 0 ? 'この日も がんばったね！' : 'この日の きろくをえらんでね')) + '</div>';
   html += '<div class="tier-row"><button class="tier-edit-btn" data-action="openLevelPicker" data-child="' + childKey + '"><span class="section-label" style="color:' + accent + ';">' + esc(CORE_TIERS[tier].label) + '</span><span style="font-size:12px;">✏️</span></button>';
   html += daysLeft !== null
     ? '<span class="level-pill" style="color:' + accent + ';background:' + accent + '1A;">あと' + daysLeft + 'にちでレベルアップ⤴</span>'
@@ -781,8 +800,9 @@ function render() {
   const today = new Date(), todayStr = toDateStr(today);
   const streak = calcStreak(activeChildData.dates, today);
 
+  if (viewDateStr > todayStr) viewDateStr = todayStr; // 未来日は表示しない
   let main = "";
-  if (uiTab === "today") main = renderToday(activeChild, childInfo.accent, activeChildData.startDate, activeChildData.baseTier, activeChildData.dates[todayStr] || []);
+  if (uiTab === "today") main = renderToday(activeChild, childInfo.accent, activeChildData.startDate, activeChildData.baseTier, activeChildData.dates[viewDateStr] || []);
   else if (uiTab === "calendar") main = renderCalendar(activeChildData, childInfo.accent, todayStr);
   else if (uiTab === "together") main = renderTogether(todayStr, today);
   else if (uiTab === "records") main = renderRecords(activeChildData, activeChild, childInfo, totalPoints, streak, level, todayStr);
@@ -834,8 +854,11 @@ document.addEventListener("click", function(e) {
   if (!target) return;
   const action = target.dataset.action;
   if (action === "selectChild") { setActiveChild(target.dataset.child); }
-  else if (action === "setTab") { uiTab = target.dataset.tab; }
+  else if (action === "setTab") { if (target.dataset.tab === "today") viewDateStr = toDateStr(new Date()); uiTab = target.dataset.tab; }
   else if (action === "toggleItem") { toggleItem(target.dataset.child, target.dataset.date, target.dataset.item); }
+  else if (action === "dayPrev") { const d = new Date(viewDateStr + "T00:00:00"); d.setDate(d.getDate() - 1); viewDateStr = toDateStr(d); }
+  else if (action === "dayNext") { const d = new Date(viewDateStr + "T00:00:00"); d.setDate(d.getDate() + 1); const ds = toDateStr(d); if (ds <= toDateStr(new Date())) viewDateStr = ds; }
+  else if (action === "dayToday") { viewDateStr = toDateStr(new Date()); }
   else if (action === "calPrev") { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); }
   else if (action === "calNext") { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); }
   else if (action === "selectDay") { selectedDate = target.dataset.date; }
