@@ -154,28 +154,33 @@ const PLUS_ALPHA_ITEMS = [
 const PLUS_ALPHA_IDS = PLUS_ALPHA_ITEMS.map((i) => i.id);
 const TODAY_MAX = CORE_IDS.length + PLUS_ALPHA_ITEMS.length;
 
+/* ---------- 進化レベル（家：小屋→一般住宅→豪邸→お城 × 設備5段階 ＝ 20段階） ---------- */
+/* 進化ペース「ふつう」：最終段階(でんせつ)に約114スタンプで到達 */
+const LEVEL_MINS = [0, 3, 6, 10, 14, 18, 23, 28, 33, 39, 45, 51, 58, 65, 72, 80, 88, 96, 105, 114];
+const UKA_LEVEL_NAMES = [
+  "ちいさなこや", "やねつきこや", "まどつきこや", "えんとつのこや", "おはなのこや",
+  "あたらしいおうち", "まどがふえたおうち", "にわつきのおうち", "ガレージのおうち", "ウッドデッキのおうち",
+  "おおきなごうてい", "バルコニーのごうてい", "プールつきごうてい", "ひろいにわのごうてい", "きらきらごうてい",
+  "ちいさなおしろ", "とうのあるおしろ", "まどがきれいなおしろ", "はたのはためくおしろ", "でんせつのおしろ",
+];
+const KAIO_LEVEL_NAMES = [
+  "レゴのちいさなこや", "やねをのせたこや", "まどブロックのこや", "えんとつのこや", "おはなだんのこや",
+  "レゴのおうち", "まどがふえたレゴハウス", "にわつきレゴハウス", "ガレージのレゴハウス", "ウッドデッキのレゴハウス",
+  "おおきなレゴごうてい", "バルコニーのレゴごうてい", "プールつきレゴごうてい", "ひろいにわのレゴごうてい", "きらきらレゴごうてい",
+  "レゴのちいさなおしろ", "とうのあるレゴじょう", "まどがきれいなレゴじょう", "はたのはためくレゴじょう", "でんせつのレゴキャッスル",
+];
+function buildLevels(names) {
+  return LEVEL_MINS.map(function (m, i) { return { min: m, name: names[i], stage: i }; });
+}
+
 const CHILDREN = {
   uka: {
-    name: "ウカ", emoji: "🦄", accent: "#B15FCF", accentSoft: "#F3E4FB",
-    levels: [
-      { min: 0, name: "たまご", stage: 0 },
-      { min: 5, name: "こうま", stage: 1 },
-      { min: 15, name: "つのが生えた", stage: 2 },
-      { min: 30, name: "キラキラユニコーン", stage: 3 },
-      { min: 50, name: "にじのユニコーン", stage: 4 },
-      { min: 80, name: "でんせつのユニコーン", stage: 5 },
-    ],
+    name: "ウカ", emoji: "🏠", accent: "#B15FCF", accentSoft: "#F3E4FB",
+    levels: buildLevels(UKA_LEVEL_NAMES),
   },
   kaio: {
-    name: "カイオ", emoji: "🚗", accent: "#E08A2E", accentSoft: "#FDECD8",
-    levels: [
-      { min: 0, name: "ミニカー", stage: 0 },
-      { min: 5, name: "パワーアップカー", stage: 1 },
-      { min: 15, name: "スピードカー", stage: 2 },
-      { min: 30, name: "レーシングカー", stage: 3 },
-      { min: 50, name: "チャンピオンカー", stage: 4 },
-      { min: 80, name: "でんせつのマシン", stage: 5 },
-    ],
+    name: "カイオ", emoji: "🧱", accent: "#E08A2E", accentSoft: "#FDECD8",
+    levels: buildLevels(KAIO_LEVEL_NAMES),
   },
 };
 
@@ -236,53 +241,269 @@ function coreDoneCount(checked) { return checked.filter(id => CORE_IDS.includes(
 function bonusDoneCount(checked) { return checked.filter(id => PLUS_ALPHA_IDS.includes(id)).length; }
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* ---------- Mascot SVGs ---------- */
-function unicornSVG(stage, size) {
-  const maneColors = ["#F3B6E0", "#D8A8F0", "#B6C6F5", "#A8E6C9", "#FFE29A"];
-  const maneCount = Math.min(stage + 1, maneColors.length);
-  let manes = "";
-  for (let i = 0; i < maneCount; i++) {
-    manes += '<path d="M ' + (44 - i * 2) + ' ' + (26 + i * 5) + ' q -8 2 -6 10" stroke="' + maneColors[i] + '" stroke-width="4" fill="none" stroke-linecap="round"/>';
-  }
-  let legs = "";
-  for (let i = 0; i < 4; i++) {
-    legs += '<rect x="' + (20 + i * 10) + '" y="55" width="5" height="12" rx="2.5" fill="#F3E9FA" stroke="#E4CBF2" stroke-width="1.5"/>';
-  }
-  const horn = stage >= 1 ? '<polygon points="58,20 61,30 55,29" fill="#F5C84C" stroke="#E0AC1E" stroke-width="1"/>' : "";
-  const wings = stage >= 4 ? '<path d="M 16 40 q -10 -4 -12 6 q 8 2 12 -6" fill="#FDE8B8" opacity="0.9"/><path d="M 18 48 q -10 2 -10 12 q 9 -1 10 -12" fill="#FDE8B8" opacity="0.9"/>' : "";
-  const sparkles = stage >= 5 ? '<text x="8" y="18" font-size="10">✨</text><text x="60" y="52" font-size="10">✨</text>' : "";
-  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 72 72" aria-hidden="true">' +
-    '<ellipse cx="34" cy="46" rx="18" ry="13" fill="#FFFFFF" stroke="#E9D6F5" stroke-width="2"/>' + legs +
-    '<circle cx="52" cy="34" r="11" fill="#FFFFFF" stroke="#E9D6F5" stroke-width="2"/>' + horn + manes +
-    '<circle cx="56" cy="33" r="1.6" fill="#4A4A4A"/>' + wings + sparkles + '</svg>';
+/* ---------- Mascot: アイソメトリックの「街が育つ」進化（小屋→一般住宅→豪邸→お城 ＋ 木/庭/柵/井戸/納屋/干し草/池/露店/噴水/旗が段階的に増える） ---------- */
+/* stage 0-19 → houseType = floor(stage/5), 各レベルで周りの施設が増える。Uka=doll(白×ピンク), Kaio=lego(赤×青×黄) */
+
+const OX = 50, OY = 42, TW = 11, TH = 5.5, ZH = 13;
+function P(gx, gy, gz) { return [OX + (gx - gy) * TW, OY + (gx + gy) * TH - gz * ZH]; }
+function pts(arr) { return arr.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '); }
+function depth(gx, gy) { return gx + gy; }
+
+/* a drawable = { d: depthNumber, s: svgString } */
+function poly(points, fill, stroke, sw) {
+  return '<polygon points="' + pts(points) + '" fill="' + fill + '"' + (stroke ? ' stroke="' + stroke + '" stroke-width="' + (sw || 0.5) + '" stroke-linejoin="round"' : '') + '/>';
 }
-function carSVG(stage, size) {
-  const bodyColors = ["#9AA5AD", "#3E7FD4", "#E23B3B", "#F07C1E", "#F2C230", "#1B1D22"];
-  const rimColors = ["#C9CFD6", "#C9CFD6", "#DCE2E6", "#2B2E33", "#2B2E33", "#F5C84C"];
-  const color = bodyColors[Math.min(stage, bodyColors.length - 1)];
-  const rim = rimColors[Math.min(stage, rimColors.length - 1)];
-  let speedLines = "";
-  if (stage >= 3) { for (let i = 0; i < 3; i++) speedLines += '<line x1="0" y1="' + (28 + i * 6) + '" x2="11" y2="' + (28 + i * 6) + '" stroke="#B8C4CC" stroke-width="2" stroke-linecap="round" opacity="0.8"/>'; }
-  let spoiler = "";
-  if (stage >= 1) spoiler = '<line x1="56" y1="46" x2="56" y2="30" stroke="#5A5F66" stroke-width="2" stroke-linecap="round"/><line x1="63" y1="44" x2="63" y2="30" stroke="#5A5F66" stroke-width="2" stroke-linecap="round"/><rect x="51" y="27" width="16" height="4" rx="1.6" fill="' + color + '" stroke="#3A3D42" stroke-width="0.6"/>';
-  const hoodScoop = stage >= 3 ? '<rect x="27" y="29" width="9" height="3" rx="1.3" fill="#2B2E33" opacity="0.75"/>' : "";
-  const stripe = stage >= 2 ? '<rect x="14" y="43.5" width="48" height="2.4" rx="1.2" fill="#FFFFFF" opacity="0.85"/>' : "";
-  let wheels = "";
-  [19, 55].forEach(function(cx) {
-    let spokes = "";
-    if (stage >= 2) { [0,72,144,216,288].forEach(function(deg){ const rad = deg*Math.PI/180; spokes += '<line x1="'+cx+'" y1="53" x2="'+(cx+4*Math.cos(rad))+'" y2="'+(53+4*Math.sin(rad))+'" stroke="#1E2023" stroke-width="0.8"/>'; }); }
-    wheels += '<g><circle cx="'+cx+'" cy="53" r="8.5" fill="#1E2023"/><circle cx="'+cx+'" cy="53" r="4.6" fill="'+rim+'" stroke="#1E2023" stroke-width="0.8"/>' + spokes + '<circle cx="'+cx+'" cy="53" r="1.3" fill="#1E2023"/></g>';
-  });
-  const flame = stage >= 4 ? '<path d="M69,47 C74,45 76,48 75,52 C72,51 70,50 69,47" fill="#FF8A3D"/><path d="M69,50 C73,49 74,51 73,54 C71,53 69,52 69,50" fill="#FFC93C"/>' : "";
-  const decals = stage >= 5 ? '<text x="4" y="16" font-size="9">⭐</text><text x="58" y="18" font-size="9">⭐</text>' : "";
-  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 72 72" aria-hidden="true">' + speedLines + spoiler +
-    '<path d="M6,49 C6,44 8,42 12,41 L22,41 C25,32 32,26 42,25 C50,24 58,27 62,35 L64,37 C67,37 69,40 69,44 L69,47 C69,49 67,51 64,51 L60,51 C60,48 58,46 55,46 C52,46 50,48 50,51 L24,51 C24,48 22,46 19,46 C16,46 14,48 14,51 L9,51 C7,51 6,50 6,49 Z" fill="' + color + '" stroke="rgba(0,0,0,0.18)" stroke-width="0.6"/>' +
-    '<path d="M23,40 C26,32 33,27 41,26 C47,25 53,27 57,32 L51,40 Z" fill="#BFE3F5" opacity="0.92"/>' +
-    '<path d="M23,40 C26,32 33,27 41,26 L41,40 Z" fill="#FFFFFF" opacity="0.25"/>' + hoodScoop + stripe +
-    '<ellipse cx="9" cy="44.5" rx="2.2" ry="1.7" fill="#FFE9A8" stroke="#E0AC1E" stroke-width="0.4"/>' +
-    '<rect x="64.5" y="38.5" width="3" height="4" rx="1" fill="#FF5C4D"/>' + wheels + flame + decals + '</svg>';
+
+/* cuboid with gable roof. returns {d,s} */
+function building(gx0, gy0, a, b, h, wallTop, wallR, wallL, roofF, roofS, opts) {
+  opts = opts || {};
+  const C00 = P(gx0, gy0, 0), C10 = P(gx0 + a, gy0, 0), C11 = P(gx0 + a, gy0 + b, 0), C01 = P(gx0, gy0 + b, 0);
+  const T00 = P(gx0, gy0, h), T10 = P(gx0 + a, gy0, h), T11 = P(gx0 + a, gy0 + b, h), T01 = P(gx0, gy0 + b, h);
+  let s = "";
+  // walls (right = +gx face, left = +gy face)
+  s += poly([C10, C11, T11, T10], wallR, "rgba(0,0,0,0.18)", 0.4);
+  s += poly([C01, C11, T11, T01], wallL, "rgba(0,0,0,0.28)", 0.4);
+  // wall detailing (windows/door) drawn on the two visible faces
+  if (opts.detail) s += opts.detail(gx0, gy0, a, b, h);
+  // top of walls
+  s += poly([T00, T10, T11, T01], wallTop, "rgba(0,0,0,0.12)", 0.3);
+  // gable roof, ridge along a-axis at gy0+b/2
+  const rh = opts.rh != null ? opts.rh : Math.max(0.6, b * 0.55);
+  const gm = gy0 + b / 2;
+  const R0 = P(gx0, gm, h + rh), R1 = P(gx0 + a, gm, h + rh);
+  // eave overhang
+  const ov = opts.ov != null ? opts.ov : 0.12;
+  const E00 = P(gx0 - ov, gy0 - ov, h), E10 = P(gx0 + a + ov, gy0 - ov, h), E11 = P(gx0 + a + ov, gy0 + b + ov, h), E01 = P(gx0 - ov, gy0 + b + ov, h);
+  const RL = P(gx0 - ov, gm, h + rh), RR = P(gx0 + a + ov, gm, h + rh);
+  // front slope (+gy, faces viewer-left/front) and right gable + right slope
+  s += poly([E01, E11, RR, RL], roofF, "rgba(0,0,0,0.2)", 0.4);      // front slope
+  s += poly([E10, E11, RR], roofS, "rgba(0,0,0,0.25)", 0.4);          // east gable triangle
+  s += poly([E00, E10, RR, RL], roofS, "rgba(0,0,0,0.25)", 0.4);      // back/right slope hint
+  if (opts.after) s += opts.after(gx0, gy0, a, b, h, rh);
+  return { d: depth(gx0 + a, gy0 + b) + 0.05, s: s };
 }
-function mascotSVG(childKey, stage, size) { return childKey === "uka" ? unicornSVG(stage, size) : carSVG(stage, size); }
+
+function tree(gx, gy, sc, pal) {
+  sc = sc || 1;
+  const base = P(gx, gy, 0);
+  const trunkW = 1.1 * sc;
+  const tb0 = [base[0] - trunkW, base[1]], tb1 = [base[0] + trunkW, base[1]];
+  const th = 5 * sc;
+  let s = '<rect x="' + (base[0] - trunkW).toFixed(1) + '" y="' + (base[1] - th).toFixed(1) + '" width="' + (trunkW * 2).toFixed(1) + '" height="' + (th + 1).toFixed(1) + '" rx="1" fill="#8D6E63"/>';
+  const cy = base[1] - th - 4 * sc;
+  const r = 6 * sc;
+  s += '<circle cx="' + (base[0] - r * 0.5).toFixed(1) + '" cy="' + (cy + r * 0.35).toFixed(1) + '" r="' + (r * 0.8).toFixed(1) + '" fill="' + pal.treeD + '"/>';
+  s += '<circle cx="' + (base[0] + r * 0.55).toFixed(1) + '" cy="' + (cy + r * 0.3).toFixed(1) + '" r="' + (r * 0.85).toFixed(1) + '" fill="' + pal.treeD + '"/>';
+  s += '<circle cx="' + base[0].toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + pal.tree + '"/>';
+  s += '<circle cx="' + (base[0] - r * 0.35).toFixed(1) + '" cy="' + (cy - r * 0.3).toFixed(1) + '" r="' + (r * 0.45).toFixed(1) + '" fill="' + pal.treeL + '"/>';
+  return { d: depth(gx, gy) + 0.02, s: s };
+}
+
+function gardenPatch(gx, gy, rows, pal) {
+  // small tiled soil bed with plants
+  const a = 0.9, b = 0.9;
+  const C00 = P(gx, gy, 0), C10 = P(gx + a, gy, 0), C11 = P(gx + a, gy + b, 0), C01 = P(gx, gy + b, 0);
+  let s = poly([C00, C10, C11, C01], "#7B5A3A", "#5E4429", 0.4);
+  for (let i = 0; i < (rows || 3); i++) {
+    const t = (i + 0.5) / (rows || 3);
+    const p = P(gx + a * t, gy + 0.15, 0);
+    s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + (p[1] - 1.5).toFixed(1) + '" r="1.6" fill="' + pal.crop + '"/>';
+    const p2 = P(gx + a * t, gy + 0.55, 0);
+    s += '<circle cx="' + p2[0].toFixed(1) + '" cy="' + (p2[1] - 1.5).toFixed(1) + '" r="1.6" fill="' + pal.crop2 + '"/>';
+  }
+  return { d: depth(gx + a, gy + b), s: s };
+}
+
+function fenceRun(gx0, gy0, gx1, gy1, n, col) {
+  let s = "";
+  let maxd = 0;
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const gx = gx0 + (gx1 - gx0) * t, gy = gy0 + (gy1 - gy0) * t;
+    const b = P(gx, gy, 0), tp = P(gx, gy, 0.42);
+    s += '<line x1="' + b[0].toFixed(1) + '" y1="' + b[1].toFixed(1) + '" x2="' + tp[0].toFixed(1) + '" y2="' + tp[1].toFixed(1) + '" stroke="' + col + '" stroke-width="1.4" stroke-linecap="round"/>';
+    maxd = Math.max(maxd, depth(gx, gy));
+  }
+  // rails
+  const ra0 = P(gx0, gy0, 0.32), ra1 = P(gx1, gy1, 0.32);
+  const rb0 = P(gx0, gy0, 0.15), rb1 = P(gx1, gy1, 0.15);
+  s += '<line x1="' + ra0[0].toFixed(1) + '" y1="' + ra0[1].toFixed(1) + '" x2="' + ra1[0].toFixed(1) + '" y2="' + ra1[1].toFixed(1) + '" stroke="' + col + '" stroke-width="1.1"/>';
+  s += '<line x1="' + rb0[0].toFixed(1) + '" y1="' + rb0[1].toFixed(1) + '" x2="' + rb1[0].toFixed(1) + '" y2="' + rb1[1].toFixed(1) + '" stroke="' + col + '" stroke-width="1.1"/>';
+  return { d: maxd - 0.3, s: s };
+}
+
+function well(gx, gy, pal) {
+  const a = 0.5, b = 0.5, h = 0.5;
+  const bd = building(gx, gy, a, b, h, "#B0BEC5", "#90A4AE", "#78909C", pal.roof, pal.roofD, { rh: 0.5, ov: 0.2 });
+  return { d: depth(gx + a, gy + b) + 0.04, s: bd.s };
+}
+
+function pond(gx, gy) {
+  const a = 1.1, b = 0.9;
+  const C00 = P(gx, gy, 0), C10 = P(gx + a, gy, 0), C11 = P(gx + a, gy + b, 0), C01 = P(gx, gy + b, 0);
+  let s = poly([C00, C10, C11, C01], "#5BB7E0", "#3E93BF", 0.5);
+  const m = P(gx + a * 0.35, gy + b * 0.4, 0);
+  s += '<ellipse cx="' + m[0].toFixed(1) + '" cy="' + m[1].toFixed(1) + '" rx="4" ry="2" fill="#7FCBEA" opacity="0.8"/>';
+  return { d: depth(gx + a, gy + b) - 0.1, s: s };
+}
+
+function stall(gx, gy, pal) {
+  // market stall: table with produce + canopy
+  const a = 0.9, b = 0.7;
+  const C00 = P(gx, gy, 0.35), C10 = P(gx + a, gy, 0.35), C11 = P(gx + a, gy + b, 0.35), C01 = P(gx, gy + b, 0.35);
+  let s = poly([C00, C10, C11, C01], "#C79A5B", "#9c7743", 0.4);
+  // legs
+  [[gx, gy], [gx + a, gy + b]].forEach(function (g) { const bt = P(g[0], g[1], 0), tp = P(g[0], g[1], 0.35); s += '<line x1="' + bt[0].toFixed(1) + '" y1="' + bt[1].toFixed(1) + '" x2="' + tp[0].toFixed(1) + '" y2="' + tp[1].toFixed(1) + '" stroke="#7a5c33" stroke-width="1.2"/>'; });
+  // produce
+  const cols = ["#E5533B", "#F2A93B", "#7CB342", "#C34DB0"];
+  for (let i = 0; i < 5; i++) { const p = P(gx + 0.15 + (a - 0.3) * (i / 4), gy + 0.35, 0.35); s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + (p[1] - 1).toFixed(1) + '" r="1.5" fill="' + cols[i % cols.length] + '"/>'; }
+  // canopy
+  const cH = 1.05;
+  const K00 = P(gx - 0.15, gy - 0.15, cH), K10 = P(gx + a + 0.15, gy - 0.15, cH), K11 = P(gx + a + 0.15, gy + b + 0.15, cH), K01 = P(gx - 0.15, gy + b + 0.15, cH);
+  s += poly([K00, K10, K11, K01], pal.canopy, "rgba(0,0,0,0.15)", 0.4);
+  // posts
+  [[gx, gy], [gx + a, gy + b], [gx + a, gy], [gx, gy + b]].forEach(function (g) { const bt = P(g[0], g[1], 0.35), tp = P(g[0], g[1], cH); s += '<line x1="' + bt[0].toFixed(1) + '" y1="' + bt[1].toFixed(1) + '" x2="' + tp[0].toFixed(1) + '" y2="' + tp[1].toFixed(1) + '" stroke="#EFE3C8" stroke-width="1"/>'; });
+  return { d: depth(gx + a, gy + b) + 0.06, s: s };
+}
+
+function hayBales(gx, gy) {
+  const p = P(gx, gy, 0);
+  let s = '<ellipse cx="' + (p[0] - 3).toFixed(1) + '" cy="' + (p[1] - 2).toFixed(1) + '" rx="3" ry="2.4" fill="#E4C15E" stroke="#C7A244" stroke-width="0.4"/>';
+  s += '<ellipse cx="' + (p[0] + 2.5).toFixed(1) + '" cy="' + (p[1] - 2).toFixed(1) + '" rx="3" ry="2.4" fill="#E4C15E" stroke="#C7A244" stroke-width="0.4"/>';
+  s += '<ellipse cx="' + (p[0] - 0.2).toFixed(1) + '" cy="' + (p[1] - 5).toFixed(1) + '" rx="3" ry="2.4" fill="#EBCB6E" stroke="#C7A244" stroke-width="0.4"/>';
+  return { d: depth(gx, gy) + 0.01, s: s };
+}
+
+function fountain(gx, gy) {
+  const a = 0.7, b = 0.7;
+  const bd = building(gx, gy, a, b, 0.3, "#CBD5DA", "#AEBCC2", "#93A2A9", "#CBD5DA", "#AEBCC2", { rh: 0.05, ov: 0.05 });
+  const c = P(gx + a / 2, gy + b / 2, 0.3);
+  let s = bd.s + '<ellipse cx="' + c[0].toFixed(1) + '" cy="' + (c[1]).toFixed(1) + '" rx="4" ry="2" fill="#5BB7E0"/>';
+  s += '<rect x="' + (c[0] - 0.7).toFixed(1) + '" y="' + (c[1] - 6).toFixed(1) + '" width="1.4" height="6" fill="#AEBCC2"/>';
+  s += '<circle cx="' + c[0].toFixed(1) + '" cy="' + (c[1] - 6).toFixed(1) + '" r="1.6" fill="#7FCBEA"/>';
+  return { d: depth(gx + a, gy + b) + 0.05, s: s };
+}
+
+function flag(gx, gy, gz, pal) {
+  const b = P(gx, gy, gz), t = P(gx, gy, gz + 0.9);
+  let s = '<line x1="' + b[0].toFixed(1) + '" y1="' + b[1].toFixed(1) + '" x2="' + t[0].toFixed(1) + '" y2="' + t[1].toFixed(1) + '" stroke="#9E9E9E" stroke-width="0.8"/>';
+  s += '<polygon points="' + t[0].toFixed(1) + ',' + t[1].toFixed(1) + ' ' + (t[0] + 6).toFixed(1) + ',' + (t[1] + 1.5).toFixed(1) + ' ' + t[0].toFixed(1) + ',' + (t[1] + 3.5).toFixed(1) + '" fill="' + pal.flag + '"/>';
+  return { d: 99, s: s };
+}
+
+/* ---- palettes ---- */
+function palette(theme) {
+  if (theme === "lego") return {
+    wallTop: "#F06A6A", wallR: "#E23B3B", wallL: "#C22B2B", roof: "#3E7FD4", roofD: "#2B5CA0",
+    wall2Top: "#F2C230", wall2R: "#E3B01E", wall2L: "#C79713", door: "#F2C230",
+    tree: "#57A83B", treeD: "#3E7F2B", treeL: "#7BC85A", crop: "#F2C230", crop2: "#3E7FD4",
+    canopy: "#F2C230", flag: "#F2C230", win: "#BFE3F5", lego: true,
+  };
+  return {
+    wallTop: "#FFFFFF", wallR: "#F3E1EC", wallL: "#E3C6D6", roof: "#E8639E", roofD: "#C64C82",
+    wall2Top: "#FBE7C6", wall2R: "#EAD3AC", wall2L: "#D6BC90", door: "#B57BD6",
+    tree: "#66BB6A", treeD: "#4C9A50", treeL: "#8BD48F", crop: "#E5673B", crop2: "#C34DB0",
+    canopy: "#F6D9E6", flag: "#E8639E", win: "#BFE3F5", lego: false,
+  };
+}
+
+/* detail: windows + door on visible faces */
+function houseDetail(pal) {
+  return function (gx0, gy0, a, b, h) {
+    let s = "";
+    // door on left (+gy) face, centered
+    const dgx = gx0 + a * 0.5;
+    const d0 = P(dgx - 0.12, gy0 + b, 0), d1 = P(dgx + 0.12, gy0 + b, 0), d2 = P(dgx + 0.12, gy0 + b, h * 0.62), d3 = P(dgx - 0.12, gy0 + b, h * 0.62);
+    s += poly([d0, d1, d2, d3], pal.door, "rgba(0,0,0,0.25)", 0.3);
+    // windows on right (+gx) face
+    [0.28, 0.72].forEach(function (t) {
+      const w0 = P(gx0 + a, gy0 + b * t - 0.12, h * 0.4), w1 = P(gx0 + a, gy0 + b * t + 0.12, h * 0.4), w2 = P(gx0 + a, gy0 + b * t + 0.12, h * 0.72), w3 = P(gx0 + a, gy0 + b * t - 0.12, h * 0.72);
+      s += poly([w0, w1, w2, w3], pal.win, "rgba(0,0,0,0.2)", 0.3);
+    });
+    // window on left face beside door
+    const lw0 = P(gx0 + a * 0.18 - 0.1, gy0 + b, h * 0.4), lw1 = P(gx0 + a * 0.18 + 0.1, gy0 + b, h * 0.4), lw2 = P(gx0 + a * 0.18 + 0.1, gy0 + b, h * 0.7), lw3 = P(gx0 + a * 0.18 - 0.1, gy0 + b, h * 0.7);
+    s += poly([lw0, lw1, lw2, lw3], pal.win, "rgba(0,0,0,0.2)", 0.3);
+    if (pal.lego) {
+      // brick lines on right face
+      for (let z = 0.2; z < h; z += 0.25) {
+        const a0 = P(gx0 + a, gy0, z), a1 = P(gx0 + a, gy0 + b, z);
+        s += '<line x1="' + a0[0].toFixed(1) + '" y1="' + a0[1].toFixed(1) + '" x2="' + a1[0].toFixed(1) + '" y2="' + a1[1].toFixed(1) + '" stroke="rgba(0,0,0,0.12)" stroke-width="0.3"/>';
+      }
+    }
+    return s;
+  };
+}
+
+/* main building per house type */
+function mainBuilding(type, pal) {
+  const det = houseDetail(pal);
+  if (type === 0) {
+    return building(-0.5, -0.55, 1.0, 1.0, 0.85, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.75, detail: det });
+  }
+  if (type === 1) {
+    return building(-0.6, -0.7, 1.25, 1.25, 1.15, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.95, detail: det });
+  }
+  if (type === 2) {
+    // mansion: wide two-story base + upper floor
+    const base = building(-0.85, -0.9, 1.7, 1.6, 1.6, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 1.0, detail: det });
+    const upper = building(-0.55, -0.6, 1.0, 1.0, 2.2, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.7, ov: 0.1 });
+    return { d: Math.max(base.d, upper.d), s: base.s + upper.s };
+  }
+  // type 3 castle: central keep + two towers + wall
+  const keep = building(-0.7, -0.75, 1.4, 1.4, 2.0, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 1.2, detail: det });
+  const towerL = building(-1.25, -0.4, 0.55, 0.55, 2.6, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.9, ov: 0.15 });
+  const towerR = building(0.7, -0.4, 0.55, 0.55, 2.6, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.9, ov: 0.15 });
+  return { d: Math.max(keep.d, towerR.d) + 0.1, s: towerL.s + keep.s + towerR.s };
+}
+
+function ground(theme) {
+  const pal = palette(theme);
+  const ext = 1.75;
+  const N = P(-ext, -ext, 0), E = P(ext, -ext, 0), S = P(ext, ext, 0), W = P(-ext, ext, 0);
+  let s = "";
+  // soil skirt
+  const Nd = [N[0], N[1] + 4], Ed = [E[0], E[1] + 4], Sd = [S[0], S[1] + 4], Wd = [W[0], W[1] + 4];
+  s += poly([W, S, Sd, Wd], "#7C5A3C");
+  s += poly([S, E, Ed, Sd], "#8D6B48");
+  // grass top
+  s += poly([N, E, S, W], theme === "lego" ? "#7FBF3F" : "#8BC34A", theme === "lego" ? "#6FAE33" : "#7CB342", 0.6);
+  // subtle grass highlight
+  const hN = P(-ext, -ext, 0), hMid = P(0, 0, 0);
+  s += '<polygon points="' + pts([N, E, hMid]) + '" fill="rgba(255,255,255,0.06)"/>';
+  return s;
+}
+
+function townSVG(stage, size, theme) {
+  const pal = palette(theme);
+  const type = Math.min(3, Math.floor(stage / 5));
+  const items = [];
+  // props with reveal thresholds
+  items.push(mainBuilding(type, pal));
+  if (stage >= 1) items.push(fenceRun(-1.75, 1.75, 1.75, 1.75, 6, pal.lego ? "#C7A244" : "#CBB994")); // front-left rail
+  if (stage >= 1) items.push(fenceRun(1.75, 1.75, 1.75, -1.75, 6, pal.lego ? "#C7A244" : "#CBB994")); // front-right rail
+  if (stage >= 2) items.push(tree(1.55, 0.05, 1.0, pal));   // right side
+  if (stage >= 3) items.push(gardenPatch(0.1, 0.9, 3, pal));
+  if (stage >= 4) items.push(tree(-1.6, 0.05, 0.9, pal));   // left side
+  if (stage >= 6) items.push(well(-1.4, 0.55, pal));
+  if (stage >= 7) items.push(gardenPatch(-0.95, 0.9, 3, pal));
+  if (stage >= 8) items.push(building(1.05, -0.75, 0.7, 0.7, 0.7, pal.wall2Top, pal.wall2R, pal.wall2L, "#7C5A3C", "#664828", { rh: 0.5 })); // shed/barn (right-back)
+  if (stage >= 9) items.push(hayBales(1.45, 0.6));
+  if (stage >= 11) items.push(pond(-1.5, -0.5));
+  if (stage >= 12) items.push(stall(1.05, 0.95, pal));
+  if (stage >= 13) items.push(gardenPatch(0.9, -1.35, 2, pal));
+  if (stage >= 14) items.push(fountain(0.15, 0.35));
+  if (stage >= 16) { items.push(flag(-1.15, -0.2, type >= 3 ? 2.6 : 1.6, pal)); items.push(flag(1.2, -0.2, type >= 3 ? 2.6 : 1.6, pal)); }
+  if (stage >= 17) items.push(tree(-1.6, 0.95, 0.85, pal));
+  if (stage >= 18) items.push(flag(0, -0.05, type >= 3 ? 3.3 : 2.4, pal));
+  // sort back-to-front
+  items.sort(function (x, y) { return x.d - y.d; });
+  let body = ground(theme);
+  items.forEach(function (it) { body += it.s; });
+  if (stage >= 19) body += '<text x="14" y="20" font-size="9">✨</text><text x="82" y="24" font-size="9">✨</text><text x="50" y="14" font-size="9">✨</text>';
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 92" aria-hidden="true">' + body + '</svg>';
+}
+
+function mascotSVG(childKey, stage, size) { return townSVG(stage, size, childKey === "kaio" ? "lego" : "doll"); }
 
 /* ---------- State (synced live via Firebase Realtime Database) ---------- */
 const firebaseConfig = {
