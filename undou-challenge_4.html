@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="うんどうチャレンジ" />
+<meta name="theme-color" content="#DFF1FF" />
+<title>うんどうチャレンジ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --font-display: 'M PLUS Rounded 1c', sans-serif; --font-body: 'Zen Maru Gothic', sans-serif; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: linear-gradient(180deg, #DFF1FF 0%, #F3FBEF 55%, #EAF7E5 100%);
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  button { font: inherit; cursor: pointer; border: none; background: none; padding: 0; color: inherit; }
+  .page { min-height: 100vh; position: relative; }
+  .container { max-width: 480px; margin: 0 auto; position: relative; min-height: 100vh; }
+  .loading-screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #EAF7E5; }
+  .switcher-row { display: flex; gap: 8px; padding: 14px 16px 0; }
+  .switcher-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 14px; padding: 8px 0; }
+  .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 10px; }
+  .mascot-badge { width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .house-trigger { cursor: pointer; transition: transform 0.15s ease; display: inline-flex; -webkit-tap-highlight-color: rgba(0,0,0,0.08); }
+  .house-trigger svg, .house-trigger svg * { pointer-events: none; }
+  .house-trigger:active { transform: scale(0.92); }
+  .house-modal-overlay { align-items: center; padding: 20px; }
+  .house-modal-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 90%; max-width: 320px; background: linear-gradient(180deg,#FFFFFF,#F4FBF3); border-radius: 24px; padding: 30px 24px 24px; box-shadow: 0 16px 40px rgba(0,0,0,0.28); animation: housePop 0.28s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes housePop { from { transform: scale(0.55); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .house-modal-close { position: absolute; top: 12px; right: 12px; }
+  .house-modal-name { font-family: var(--font-display); font-weight: 800; font-size: 19px; color: #2C3E50; margin-top: 8px; }
+  .house-modal-level { font-family: var(--font-body); font-size: 13px; color: #7A8A99; }
+  .header-level { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: #2C3E50; }
+  .progress-track { width: 130px; height: 6px; background: #E3ECF2; border-radius: 4px; margin-top: 5px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .streak-badge { display: flex; align-items: center; gap: 4px; background: #FFFFFFCC; padding: 6px 12px; border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); font-family: var(--font-display); font-weight: 800; font-size: 16px; color: #2C3E50; }
+  .error-banner { margin: 0 16px 8px; padding: 8px 12px; background: #FFE3D9; color: #D9502C; border-radius: 10px; font-size: 12px; }
+  .main { padding-bottom: 90px; }
+  .date-row { margin-bottom: 12px; padding: 12px 16px 0; font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #2C3E50; }
+  .daynav { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 6px; gap: 8px; }
+  .daynav-btn { width: 40px; height: 40px; border-radius: 12px; background: #FFFFFFCC; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #2C3E50; box-shadow: 0 2px 6px rgba(0,0,0,0.06); flex-shrink: 0; }
+  .daynav-center { flex: 1; text-align: center; }
+  .daynav-date { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: #2C3E50; }
+  .daynav-tag { font-family: var(--font-display); font-size: 12px; font-weight: 700; margin-top: 1px; }
+  .daynav-today { font-family: var(--font-display); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 20px; margin-top: 3px; }
+  .past-banner { text-align: center; background: #FFF4D6; color: #B77A00; font-family: var(--font-display); font-weight: 700; font-size: 13px; border-radius: 12px; padding: 8px 10px; margin-bottom: 10px; }
+  .section-pad { padding: 0 16px; }
+  .big-progress-track { position: relative; height: 26px; background: #FFFFFF; border-radius: 14px; overflow: hidden; box-shadow: inset 0 0 0 2px #E3ECF2; margin-bottom: 10px; }
+  .big-progress-fill { height: 100%; border-radius: 14px; transition: width 0.4s ease; }
+  .big-progress-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 800; font-size: 12px; color: #2C3E50; }
+  .message-banner { text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 14px; margin-bottom: 14px; }
+  .tier-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+  .tier-edit-btn { display: flex; align-items: center; gap: 5px; }
+  .section-label { font-family: var(--font-display); font-weight: 700; font-size: 12px; }
+  .level-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-weight: 700; font-size: 11px; }
+  .card-grid { display: flex; flex-direction: column; gap: 10px; }
+  .card { display: flex; align-items: center; gap: 12px; background: #FFFFFF; border: 2px solid #E3ECF2; border-radius: 16px; padding: 12px 14px; text-align: left; box-shadow: 0 2px 6px rgba(0,0,0,0.04); width: 100%; transition: border-color 0.2s ease, background 0.2s ease; }
+  .card-emoji { font-size: 30px; width: 40px; text-align: center; flex-shrink: 0; }
+  .card-name { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: #2C3E50; }
+  .card-desc { font-family: var(--font-body); font-size: 12px; color: #7A8A99; margin-top: 2px; }
+  .stamp-circle { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #D8E2E8; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #FFFFFF; flex-shrink: 0; }
+  .bonus-note { display: flex; align-items: center; gap: 5px; justify-content: center; margin-top: 10px; font-family: var(--font-display); font-weight: 700; font-size: 12px; color: #3E9C87; }
+  @keyframes popStamp { 0% { transform: scale(0.4) rotate(-15deg); opacity: 0; } 60% { transform: scale(1.25) rotate(8deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+  .pop { animation: popStamp 0.5s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .pop { animation: none; } }
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .nav-btn { width: 36px; height: 36px; border-radius: 10px; background: #FFFFFFCC; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #2C3E50; }
+  .cal-title { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: #2C3E50; }
+  .week-row { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 4px; }
+  .week-label { text-align: center; font-size: 11px; font-weight: 700; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .day-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #FFFFFFAA; border-radius: 10px; gap: 1px; }
+  .day-num { font-size: 13px; color: #2C3E50; }
+  .day-mark { font-size: 15px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(30,40,50,0.4); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .modal-card { width: 100%; max-width: 480px; background: #F8FCF6; border-radius: 20px 20px 0 0; padding: 18px 16px calc(28px + env(safe-area-inset-bottom)); max-height: 80vh; overflow-y: auto; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; }
+  .modal-title { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: #2C3E50; }
+  .close-btn { background: #EEF3F5; border-radius: 8px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: #7A8A99; }
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+  .stat-card { background: #FFFFFF; border-radius: 14px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .stat-icon { font-size: 18px; }
+  .stat-value { font-family: var(--font-display); font-weight: 800; font-size: 17px; color: #2C3E50; margin-top: 4px; }
+  .stat-label { font-family: var(--font-body); font-size: 11px; color: #7A8A99; }
+  .tree-stat-card { margin-top: 12px; border-radius: 16px; padding: 14px; display: flex; align-items: center; gap: 14px; }
+  .tree-stat-name { font-family: var(--font-display); font-weight: 800; font-size: 16px; color: #2C3E50; }
+  .tree-stat-sub { font-family: var(--font-body); font-size: 12px; color: #7A8A99; }
+  .tier-banner { width: 100%; margin-top: 10px; background: #FFFFFF; border: 2px solid; border-radius: 12px; padding: 8px 12px; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: var(--font-display); font-weight: 700; font-size: 13px; color: #2C3E50; }
+  .chart-card { background: #FFFFFF; border-radius: 16px; padding: 14px 10px 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .chart-bars { display: flex; align-items: flex-end; justify-content: space-between; height: 130px; gap: 6px; }
+  .chart-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 6px; }
+  .chart-bar-track { width: 100%; height: 100px; display: flex; align-items: flex-end; background: #F1F5F7; border-radius: 6px; overflow: hidden; }
+  .chart-bar { width: 100%; border-radius: 6px 6px 0 0; transition: height 0.3s ease; }
+  .chart-bar-label { font-size: 11px; color: #7A8A99; font-family: var(--font-body); }
+  .chart-legend { display: flex; gap: 16px; margin-bottom: 6px; padding-left: 4px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .together-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+  .together-card { display: flex; flex-direction: column; align-items: center; border-radius: 18px; padding: 14px 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); width: 100%; }
+  .together-name { font-family: var(--font-display); font-weight: 800; font-size: 14px; color: #2C3E50; margin-top: 4px; }
+  .together-level { font-family: var(--font-body); font-size: 11px; color: #7A8A99; }
+  .together-today-track { width: 100%; height: 8px; background: #FFFFFF; border-radius: 6px; overflow: hidden; margin-top: 8px; }
+  .together-today-fill { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+  .together-today-label { font-family: var(--font-body); font-size: 11px; color: #2C3E50; margin-top: 2px; }
+  .together-stats { display: flex; gap: 10px; margin-top: 6px; font-size: 11px; color: #2C3E50; font-family: var(--font-body); }
+  .vs-banner { margin-top: 14px; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 13px; color: #2C3E50; background: #FFFFFF; border-radius: 14px; padding: 10px 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+  .section-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: #2C3E50; margin: 16px 0 8px; }
+  .level-option { display: flex; flex-direction: column; align-items: stretch; text-align: left; background: #FFFFFF; border: 2px solid #E3ECF2; border-radius: 14px; padding: 12px 14px; width: 100%; }
+  .level-option-head { display: flex; justify-content: space-between; align-items: center; }
+  .level-option-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: #2C3E50; }
+  .level-option-desc { font-family: var(--font-body); font-size: 11px; color: #7A8A99; margin-top: 3px; }
+  .level-picker-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+  .level-picker-note { font-family: var(--font-body); font-size: 11px; color: #7A8A99; margin-top: 12px; text-align: center; }
+  .tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; display: flex; justify-content: space-around; background: #FFFFFFF2; border-top: 1px solid #E3ECF2; padding: 8px 0 calc(10px + env(safe-area-inset-bottom)); }
+  .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 18px; }
+  .tab-icon { font-size: 20px; }
+  .tab-label { font-family: var(--font-body); font-size: 11px; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* ---------- Data ---------- */
+const CORE_TIERS = [
+  { label: "きほんメニュー Lv.1", items: [
+    { id: "ladder", name: "ラダーあそび", emoji: "🪜", desc: "前・よこ に歩く" },
+    { id: "throw", name: "ボールなげ", emoji: "🎾", desc: "親とキャッチボール（近く）" },
+    { id: "balance", name: "バランスあそび", emoji: "🤸", desc: "かた足立ち 30びょう" },
+    { id: "dash", name: "ダッシュあそび", emoji: "💨", desc: "前向きダッシュ 3本" },
+  ]},
+  { label: "きほんメニュー Lv.2", items: [
+    { id: "ladder", name: "ラダーあそび", emoji: "🪜", desc: "ケンケン・グーパージャンプ" },
+    { id: "throw", name: "ボールなげ", emoji: "🎾", desc: "かべあて キャッチ" },
+    { id: "balance", name: "バランスあそび", emoji: "🤸", desc: "目をとじて 10びょう" },
+    { id: "dash", name: "ダッシュあそび", emoji: "💨", desc: "前・うしろ ダッシュ" },
+  ]},
+  { label: "きほんメニュー Lv.3", items: [
+    { id: "ladder", name: "ラダーあそび", emoji: "🪜", desc: "2きざみジャンプ・れんぞく" },
+    { id: "throw", name: "ボールなげ", emoji: "🎾", desc: "かた手キャッチ" },
+    { id: "balance", name: "バランスあそび", emoji: "🤸", desc: "一本線あるき" },
+    { id: "dash", name: "ダッシュあそび", emoji: "💨", desc: "前・うしろ・よこ ダッシュ" },
+  ]},
+  { label: "きほんメニュー Lv.4", items: [
+    { id: "ladder", name: "ラダーあそび", emoji: "🪜", desc: "へんそくステップ・スピードアップ" },
+    { id: "throw", name: "ボールなげ", emoji: "🎾", desc: "うごきながら キャッチ" },
+    { id: "balance", name: "バランスあそび", emoji: "🤸", desc: "バランス＋ボールそうさ" },
+    { id: "dash", name: "ダッシュあそび", emoji: "💨", desc: "きりかえしダッシュ（コーンタッチ）" },
+  ]},
+];
+const CORE_IDS = ["ladder", "throw", "balance", "dash"];
+const TIER_DAYS = 14;
+const MAX_TIER = CORE_TIERS.length - 1;
+
+const PLUS_ALPHA_ITEMS = [
+  { id: "pool", name: "プール", emoji: "🏊", desc: "およぐ・けのび・バタ足" },
+  { id: "soccer", name: "サッカー", emoji: "⚽", desc: "サッカーの練習・試合" },
+  { id: "athletic", name: "アスレチック", emoji: "🧗", desc: "ロープ・雲てい・木のぼり" },
+  { id: "parkour", name: "パルクール", emoji: "🤾", desc: "パルクールの練習" },
+  { id: "park", name: "公園あそび", emoji: "🌳", desc: "公園でおもいっきりあそぶ" },
+];
+const PLUS_ALPHA_IDS = PLUS_ALPHA_ITEMS.map((i) => i.id);
+const TODAY_MAX = CORE_IDS.length + PLUS_ALPHA_ITEMS.length;
+
+/* ---------- 進化レベル（家：小屋→一般住宅→豪邸→お城 × 設備5段階 ＝ 20段階） ---------- */
+/* 進化ペース「ふつう」：最終段階(でんせつ)に約114スタンプで到達 */
+const LEVEL_MINS = [0, 3, 6, 10, 14, 18, 23, 28, 33, 39, 45, 51, 58, 65, 72, 80, 88, 96, 105, 114];
+const UKA_LEVEL_NAMES = [
+  "ちいさなこや", "やねつきこや", "まどつきこや", "えんとつのこや", "おはなのこや",
+  "あたらしいおうち", "まどがふえたおうち", "にわつきのおうち", "ガレージのおうち", "ウッドデッキのおうち",
+  "おおきなごうてい", "バルコニーのごうてい", "プールつきごうてい", "ひろいにわのごうてい", "きらきらごうてい",
+  "ちいさなおしろ", "とうのあるおしろ", "まどがきれいなおしろ", "はたのはためくおしろ", "でんせつのおしろ",
+];
+const KAIO_LEVEL_NAMES = [
+  "レゴのちいさなこや", "やねをのせたこや", "まどブロックのこや", "えんとつのこや", "おはなだんのこや",
+  "レゴのおうち", "まどがふえたレゴハウス", "にわつきレゴハウス", "ガレージのレゴハウス", "ウッドデッキのレゴハウス",
+  "おおきなレゴごうてい", "バルコニーのレゴごうてい", "プールつきレゴごうてい", "ひろいにわのレゴごうてい", "きらきらレゴごうてい",
+  "レゴのちいさなおしろ", "とうのあるレゴじょう", "まどがきれいなレゴじょう", "はたのはためくレゴじょう", "でんせつのレゴキャッスル",
+];
+function buildLevels(names) {
+  return LEVEL_MINS.map(function (m, i) { return { min: m, name: names[i], stage: i }; });
+}
+
+const CHILDREN = {
+  uka: {
+    name: "ウカ", emoji: "🏠", accent: "#B15FCF", accentSoft: "#F3E4FB",
+    levels: buildLevels(UKA_LEVEL_NAMES),
+  },
+  kaio: {
+    name: "カイオ", emoji: "🧱", accent: "#E08A2E", accentSoft: "#FDECD8",
+    levels: buildLevels(KAIO_LEVEL_NAMES),
+  },
+};
+
+const MESSAGES = {
+  empty: ["さあ、はじめよう！", "きょうもチャレンジ！", "1つやってみよう！"],
+  partial: ["いいちょうし！", "その調子〜！", "あと少し！"],
+  full: ["パーフェクト！🌟", "きょうも やりきった！", "すごい！かんぺき！"],
+};
+
+/* ---------- Helpers ---------- */
+function toDateStr(d) {
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
+  return y + "-" + m + "-" + day;
+}
+function daysBetween(startDate, dateStr) {
+  const a = new Date(startDate + "T00:00:00"), b = new Date(dateStr + "T00:00:00");
+  return Math.floor((b - a) / 86400000);
+}
+function getTier(startDate, dateStr, baseTier) {
+  baseTier = baseTier || 0;
+  if (!startDate) return Math.min(MAX_TIER, Math.max(0, baseTier));
+  const days = daysBetween(startDate, dateStr);
+  return Math.min(MAX_TIER, Math.max(0, baseTier + Math.floor(days / TIER_DAYS)));
+}
+function daysUntilNextTier(startDate, dateStr, baseTier) {
+  baseTier = baseTier || 0;
+  const tier = getTier(startDate, dateStr, baseTier);
+  if (tier >= MAX_TIER) return null;
+  if (!startDate) return TIER_DAYS;
+  const days = daysBetween(startDate, dateStr);
+  const tierStartDay = (tier - baseTier) * TIER_DAYS;
+  return tierStartDay + TIER_DAYS - days;
+}
+function getLevel(childKey, points) {
+  const levels = CHILDREN[childKey].levels;
+  let current = levels[0], idx = 0;
+  for (let i = 0; i < levels.length; i++) { if (points >= levels[i].min) { current = levels[i]; idx = i; } }
+  const next = levels[idx + 1];
+  return Object.assign({}, current, { idx: idx, next: next });
+}
+function pickMessage(ratio) {
+  const key = ratio === 0 ? "empty" : ratio >= 1 ? "full" : "partial";
+  const arr = MESSAGES[key];
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+function sumPoints(dates) { return Object.values(dates).reduce((s, a) => s + a.length, 0); }
+function calcStreak(dates, today) {
+  let count = 0, cursor = new Date(today);
+  if (!(dates[toDateStr(cursor)] || []).length) cursor.setDate(cursor.getDate() - 1);
+  for (let i = 0; i < 400; i++) {
+    const ds = toDateStr(cursor);
+    if (!(dates[ds] || []).length) break;
+    count++; cursor.setDate(cursor.getDate() - 1);
+  }
+  return count;
+}
+function coreDoneCount(checked) { return checked.filter(id => CORE_IDS.includes(id)).length; }
+function bonusDoneCount(checked) { return checked.filter(id => PLUS_ALPHA_IDS.includes(id)).length; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- Mascot: アイソメトリックの「街が育つ」進化（小屋→一般住宅→豪邸→お城 ＋ 木/庭/柵/井戸/納屋/干し草/池/露店/噴水/旗が段階的に増える） ---------- */
+/* stage 0-19 → houseType = floor(stage/5), 各レベルで周りの施設が増える。Uka=doll(白×ピンク), Kaio=lego(赤×青×黄) */
+
+const OX = 50, OY = 42, TW = 11, TH = 5.5, ZH = 13;
+function P(gx, gy, gz) { return [OX + (gx - gy) * TW, OY + (gx + gy) * TH - gz * ZH]; }
+function pts(arr) { return arr.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' '); }
+function depth(gx, gy) { return gx + gy; }
+
+/* a drawable = { d: depthNumber, s: svgString } */
+function poly(points, fill, stroke, sw) {
+  return '<polygon points="' + pts(points) + '" fill="' + fill + '"' + (stroke ? ' stroke="' + stroke + '" stroke-width="' + (sw || 0.5) + '" stroke-linejoin="round"' : '') + '/>';
+}
+
+/* cuboid with gable roof. returns {d,s} */
+function building(gx0, gy0, a, b, h, wallTop, wallR, wallL, roofF, roofS, opts) {
+  opts = opts || {};
+  const C00 = P(gx0, gy0, 0), C10 = P(gx0 + a, gy0, 0), C11 = P(gx0 + a, gy0 + b, 0), C01 = P(gx0, gy0 + b, 0);
+  const T00 = P(gx0, gy0, h), T10 = P(gx0 + a, gy0, h), T11 = P(gx0 + a, gy0 + b, h), T01 = P(gx0, gy0 + b, h);
+  let s = "";
+  // walls (right = +gx face, left = +gy face)
+  s += poly([C10, C11, T11, T10], wallR, "rgba(0,0,0,0.18)", 0.4);
+  s += poly([C01, C11, T11, T01], wallL, "rgba(0,0,0,0.28)", 0.4);
+  // wall detailing (windows/door) drawn on the two visible faces
+  if (opts.detail) s += opts.detail(gx0, gy0, a, b, h);
+  // top of walls
+  s += poly([T00, T10, T11, T01], wallTop, "rgba(0,0,0,0.12)", 0.3);
+  // gable roof, ridge along a-axis at gy0+b/2
+  const rh = opts.rh != null ? opts.rh : Math.max(0.6, b * 0.55);
+  const gm = gy0 + b / 2;
+  const R0 = P(gx0, gm, h + rh), R1 = P(gx0 + a, gm, h + rh);
+  // eave overhang
+  const ov = opts.ov != null ? opts.ov : 0.12;
+  const E00 = P(gx0 - ov, gy0 - ov, h), E10 = P(gx0 + a + ov, gy0 - ov, h), E11 = P(gx0 + a + ov, gy0 + b + ov, h), E01 = P(gx0 - ov, gy0 + b + ov, h);
+  const RL = P(gx0 - ov, gm, h + rh), RR = P(gx0 + a + ov, gm, h + rh);
+  // front slope (+gy, faces viewer-left/front) and right gable + right slope
+  s += poly([E01, E11, RR, RL], roofF, "rgba(0,0,0,0.2)", 0.4);      // front slope
+  s += poly([E10, E11, RR], roofS, "rgba(0,0,0,0.25)", 0.4);          // east gable triangle
+  s += poly([E00, E10, RR, RL], roofS, "rgba(0,0,0,0.25)", 0.4);      // back/right slope hint
+  if (opts.after) s += opts.after(gx0, gy0, a, b, h, rh);
+  return { d: depth(gx0 + a, gy0 + b) + 0.05, s: s };
+}
+
+function tree(gx, gy, sc, pal) {
+  sc = sc || 1;
+  const base = P(gx, gy, 0);
+  const trunkW = 1.1 * sc;
+  const tb0 = [base[0] - trunkW, base[1]], tb1 = [base[0] + trunkW, base[1]];
+  const th = 5 * sc;
+  let s = '<rect x="' + (base[0] - trunkW).toFixed(1) + '" y="' + (base[1] - th).toFixed(1) + '" width="' + (trunkW * 2).toFixed(1) + '" height="' + (th + 1).toFixed(1) + '" rx="1" fill="#8D6E63"/>';
+  const cy = base[1] - th - 4 * sc;
+  const r = 6 * sc;
+  s += '<circle cx="' + (base[0] - r * 0.5).toFixed(1) + '" cy="' + (cy + r * 0.35).toFixed(1) + '" r="' + (r * 0.8).toFixed(1) + '" fill="' + pal.treeD + '"/>';
+  s += '<circle cx="' + (base[0] + r * 0.55).toFixed(1) + '" cy="' + (cy + r * 0.3).toFixed(1) + '" r="' + (r * 0.85).toFixed(1) + '" fill="' + pal.treeD + '"/>';
+  s += '<circle cx="' + base[0].toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + pal.tree + '"/>';
+  s += '<circle cx="' + (base[0] - r * 0.35).toFixed(1) + '" cy="' + (cy - r * 0.3).toFixed(1) + '" r="' + (r * 0.45).toFixed(1) + '" fill="' + pal.treeL + '"/>';
+  return { d: depth(gx, gy) + 0.02, s: s };
+}
+
+function gardenPatch(gx, gy, rows, pal) {
+  // small tiled soil bed with plants
+  const a = 0.9, b = 0.9;
+  const C00 = P(gx, gy, 0), C10 = P(gx + a, gy, 0), C11 = P(gx + a, gy + b, 0), C01 = P(gx, gy + b, 0);
+  let s = poly([C00, C10, C11, C01], "#7B5A3A", "#5E4429", 0.4);
+  for (let i = 0; i < (rows || 3); i++) {
+    const t = (i + 0.5) / (rows || 3);
+    const p = P(gx + a * t, gy + 0.15, 0);
+    s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + (p[1] - 1.5).toFixed(1) + '" r="1.6" fill="' + pal.crop + '"/>';
+    const p2 = P(gx + a * t, gy + 0.55, 0);
+    s += '<circle cx="' + p2[0].toFixed(1) + '" cy="' + (p2[1] - 1.5).toFixed(1) + '" r="1.6" fill="' + pal.crop2 + '"/>';
+  }
+  return { d: depth(gx + a, gy + b), s: s };
+}
+
+function fenceRun(gx0, gy0, gx1, gy1, n, col) {
+  let s = "";
+  let maxd = 0;
+  for (let i = 0; i <= n; i++) {
+    const t = i / n;
+    const gx = gx0 + (gx1 - gx0) * t, gy = gy0 + (gy1 - gy0) * t;
+    const b = P(gx, gy, 0), tp = P(gx, gy, 0.42);
+    s += '<line x1="' + b[0].toFixed(1) + '" y1="' + b[1].toFixed(1) + '" x2="' + tp[0].toFixed(1) + '" y2="' + tp[1].toFixed(1) + '" stroke="' + col + '" stroke-width="1.4" stroke-linecap="round"/>';
+    maxd = Math.max(maxd, depth(gx, gy));
+  }
+  // rails
+  const ra0 = P(gx0, gy0, 0.32), ra1 = P(gx1, gy1, 0.32);
+  const rb0 = P(gx0, gy0, 0.15), rb1 = P(gx1, gy1, 0.15);
+  s += '<line x1="' + ra0[0].toFixed(1) + '" y1="' + ra0[1].toFixed(1) + '" x2="' + ra1[0].toFixed(1) + '" y2="' + ra1[1].toFixed(1) + '" stroke="' + col + '" stroke-width="1.1"/>';
+  s += '<line x1="' + rb0[0].toFixed(1) + '" y1="' + rb0[1].toFixed(1) + '" x2="' + rb1[0].toFixed(1) + '" y2="' + rb1[1].toFixed(1) + '" stroke="' + col + '" stroke-width="1.1"/>';
+  return { d: maxd - 0.3, s: s };
+}
+
+function well(gx, gy, pal) {
+  const a = 0.5, b = 0.5, h = 0.5;
+  const bd = building(gx, gy, a, b, h, "#B0BEC5", "#90A4AE", "#78909C", pal.roof, pal.roofD, { rh: 0.5, ov: 0.2 });
+  return { d: depth(gx + a, gy + b) + 0.04, s: bd.s };
+}
+
+function pond(gx, gy) {
+  const a = 1.1, b = 0.9;
+  const C00 = P(gx, gy, 0), C10 = P(gx + a, gy, 0), C11 = P(gx + a, gy + b, 0), C01 = P(gx, gy + b, 0);
+  let s = poly([C00, C10, C11, C01], "#5BB7E0", "#3E93BF", 0.5);
+  const m = P(gx + a * 0.35, gy + b * 0.4, 0);
+  s += '<ellipse cx="' + m[0].toFixed(1) + '" cy="' + m[1].toFixed(1) + '" rx="4" ry="2" fill="#7FCBEA" opacity="0.8"/>';
+  return { d: depth(gx + a, gy + b) - 0.1, s: s };
+}
+
+function stall(gx, gy, pal) {
+  // market stall: table with produce + canopy
+  const a = 0.9, b = 0.7;
+  const C00 = P(gx, gy, 0.35), C10 = P(gx + a, gy, 0.35), C11 = P(gx + a, gy + b, 0.35), C01 = P(gx, gy + b, 0.35);
+  let s = poly([C00, C10, C11, C01], "#C79A5B", "#9c7743", 0.4);
+  // legs
+  [[gx, gy], [gx + a, gy + b]].forEach(function (g) { const bt = P(g[0], g[1], 0), tp = P(g[0], g[1], 0.35); s += '<line x1="' + bt[0].toFixed(1) + '" y1="' + bt[1].toFixed(1) + '" x2="' + tp[0].toFixed(1) + '" y2="' + tp[1].toFixed(1) + '" stroke="#7a5c33" stroke-width="1.2"/>'; });
+  // produce
+  const cols = ["#E5533B", "#F2A93B", "#7CB342", "#C34DB0"];
+  for (let i = 0; i < 5; i++) { const p = P(gx + 0.15 + (a - 0.3) * (i / 4), gy + 0.35, 0.35); s += '<circle cx="' + p[0].toFixed(1) + '" cy="' + (p[1] - 1).toFixed(1) + '" r="1.5" fill="' + cols[i % cols.length] + '"/>'; }
+  // canopy
+  const cH = 1.05;
+  const K00 = P(gx - 0.15, gy - 0.15, cH), K10 = P(gx + a + 0.15, gy - 0.15, cH), K11 = P(gx + a + 0.15, gy + b + 0.15, cH), K01 = P(gx - 0.15, gy + b + 0.15, cH);
+  s += poly([K00, K10, K11, K01], pal.canopy, "rgba(0,0,0,0.15)", 0.4);
+  // posts
+  [[gx, gy], [gx + a, gy + b], [gx + a, gy], [gx, gy + b]].forEach(function (g) { const bt = P(g[0], g[1], 0.35), tp = P(g[0], g[1], cH); s += '<line x1="' + bt[0].toFixed(1) + '" y1="' + bt[1].toFixed(1) + '" x2="' + tp[0].toFixed(1) + '" y2="' + tp[1].toFixed(1) + '" stroke="#EFE3C8" stroke-width="1"/>'; });
+  return { d: depth(gx + a, gy + b) + 0.06, s: s };
+}
+
+function hayBales(gx, gy) {
+  const p = P(gx, gy, 0);
+  let s = '<ellipse cx="' + (p[0] - 3).toFixed(1) + '" cy="' + (p[1] - 2).toFixed(1) + '" rx="3" ry="2.4" fill="#E4C15E" stroke="#C7A244" stroke-width="0.4"/>';
+  s += '<ellipse cx="' + (p[0] + 2.5).toFixed(1) + '" cy="' + (p[1] - 2).toFixed(1) + '" rx="3" ry="2.4" fill="#E4C15E" stroke="#C7A244" stroke-width="0.4"/>';
+  s += '<ellipse cx="' + (p[0] - 0.2).toFixed(1) + '" cy="' + (p[1] - 5).toFixed(1) + '" rx="3" ry="2.4" fill="#EBCB6E" stroke="#C7A244" stroke-width="0.4"/>';
+  return { d: depth(gx, gy) + 0.01, s: s };
+}
+
+function fountain(gx, gy) {
+  const a = 0.7, b = 0.7;
+  const bd = building(gx, gy, a, b, 0.3, "#CBD5DA", "#AEBCC2", "#93A2A9", "#CBD5DA", "#AEBCC2", { rh: 0.05, ov: 0.05 });
+  const c = P(gx + a / 2, gy + b / 2, 0.3);
+  let s = bd.s + '<ellipse cx="' + c[0].toFixed(1) + '" cy="' + (c[1]).toFixed(1) + '" rx="4" ry="2" fill="#5BB7E0"/>';
+  s += '<rect x="' + (c[0] - 0.7).toFixed(1) + '" y="' + (c[1] - 6).toFixed(1) + '" width="1.4" height="6" fill="#AEBCC2"/>';
+  s += '<circle cx="' + c[0].toFixed(1) + '" cy="' + (c[1] - 6).toFixed(1) + '" r="1.6" fill="#7FCBEA"/>';
+  return { d: depth(gx + a, gy + b) + 0.05, s: s };
+}
+
+function flag(gx, gy, gz, pal) {
+  const b = P(gx, gy, gz), t = P(gx, gy, gz + 0.9);
+  let s = '<line x1="' + b[0].toFixed(1) + '" y1="' + b[1].toFixed(1) + '" x2="' + t[0].toFixed(1) + '" y2="' + t[1].toFixed(1) + '" stroke="#9E9E9E" stroke-width="0.8"/>';
+  s += '<polygon points="' + t[0].toFixed(1) + ',' + t[1].toFixed(1) + ' ' + (t[0] + 6).toFixed(1) + ',' + (t[1] + 1.5).toFixed(1) + ' ' + t[0].toFixed(1) + ',' + (t[1] + 3.5).toFixed(1) + '" fill="' + pal.flag + '"/>';
+  return { d: 99, s: s };
+}
+
+/* ---- palettes ---- */
+function palette(theme) {
+  if (theme === "lego") return {
+    wallTop: "#F06A6A", wallR: "#E23B3B", wallL: "#C22B2B", roof: "#3E7FD4", roofD: "#2B5CA0",
+    wall2Top: "#F2C230", wall2R: "#E3B01E", wall2L: "#C79713", door: "#F2C230",
+    tree: "#57A83B", treeD: "#3E7F2B", treeL: "#7BC85A", crop: "#F2C230", crop2: "#3E7FD4",
+    canopy: "#F2C230", flag: "#F2C230", win: "#BFE3F5", lego: true,
+  };
+  return {
+    wallTop: "#FFFFFF", wallR: "#F3E1EC", wallL: "#E3C6D6", roof: "#E8639E", roofD: "#C64C82",
+    wall2Top: "#FBE7C6", wall2R: "#EAD3AC", wall2L: "#D6BC90", door: "#B57BD6",
+    tree: "#66BB6A", treeD: "#4C9A50", treeL: "#8BD48F", crop: "#E5673B", crop2: "#C34DB0",
+    canopy: "#F6D9E6", flag: "#E8639E", win: "#BFE3F5", lego: false,
+  };
+}
+
+/* detail: windows + door on visible faces */
+function houseDetail(pal) {
+  return function (gx0, gy0, a, b, h) {
+    let s = "";
+    // door on left (+gy) face, centered
+    const dgx = gx0 + a * 0.5;
+    const d0 = P(dgx - 0.12, gy0 + b, 0), d1 = P(dgx + 0.12, gy0 + b, 0), d2 = P(dgx + 0.12, gy0 + b, h * 0.62), d3 = P(dgx - 0.12, gy0 + b, h * 0.62);
+    s += poly([d0, d1, d2, d3], pal.door, "rgba(0,0,0,0.25)", 0.3);
+    // windows on right (+gx) face
+    [0.28, 0.72].forEach(function (t) {
+      const w0 = P(gx0 + a, gy0 + b * t - 0.12, h * 0.4), w1 = P(gx0 + a, gy0 + b * t + 0.12, h * 0.4), w2 = P(gx0 + a, gy0 + b * t + 0.12, h * 0.72), w3 = P(gx0 + a, gy0 + b * t - 0.12, h * 0.72);
+      s += poly([w0, w1, w2, w3], pal.win, "rgba(0,0,0,0.2)", 0.3);
+    });
+    // window on left face beside door
+    const lw0 = P(gx0 + a * 0.18 - 0.1, gy0 + b, h * 0.4), lw1 = P(gx0 + a * 0.18 + 0.1, gy0 + b, h * 0.4), lw2 = P(gx0 + a * 0.18 + 0.1, gy0 + b, h * 0.7), lw3 = P(gx0 + a * 0.18 - 0.1, gy0 + b, h * 0.7);
+    s += poly([lw0, lw1, lw2, lw3], pal.win, "rgba(0,0,0,0.2)", 0.3);
+    if (pal.lego) {
+      // brick lines on right face
+      for (let z = 0.2; z < h; z += 0.25) {
+        const a0 = P(gx0 + a, gy0, z), a1 = P(gx0 + a, gy0 + b, z);
+        s += '<line x1="' + a0[0].toFixed(1) + '" y1="' + a0[1].toFixed(1) + '" x2="' + a1[0].toFixed(1) + '" y2="' + a1[1].toFixed(1) + '" stroke="rgba(0,0,0,0.12)" stroke-width="0.3"/>';
+      }
+    }
+    return s;
+  };
+}
+
+/* main building per house type */
+function mainBuilding(type, pal) {
+  const det = houseDetail(pal);
+  if (type === 0) {
+    return building(-0.5, -0.55, 1.0, 1.0, 0.85, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.75, detail: det });
+  }
+  if (type === 1) {
+    return building(-0.6, -0.7, 1.25, 1.25, 1.15, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.95, detail: det });
+  }
+  if (type === 2) {
+    // mansion: wide two-story base + upper floor
+    const base = building(-0.85, -0.9, 1.7, 1.6, 1.6, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 1.0, detail: det });
+    const upper = building(-0.55, -0.6, 1.0, 1.0, 2.2, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.7, ov: 0.1 });
+    return { d: Math.max(base.d, upper.d), s: base.s + upper.s };
+  }
+  // type 3 castle: central keep + two towers + wall
+  const keep = building(-0.7, -0.75, 1.4, 1.4, 2.0, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 1.2, detail: det });
+  const towerL = building(-1.25, -0.4, 0.55, 0.55, 2.6, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.9, ov: 0.15 });
+  const towerR = building(0.7, -0.4, 0.55, 0.55, 2.6, pal.wallTop, pal.wallR, pal.wallL, pal.roof, pal.roofD, { rh: 0.9, ov: 0.15 });
+  return { d: Math.max(keep.d, towerR.d) + 0.1, s: towerL.s + keep.s + towerR.s };
+}
+
+function ground(theme) {
+  const pal = palette(theme);
+  const ext = 1.75;
+  const N = P(-ext, -ext, 0), E = P(ext, -ext, 0), S = P(ext, ext, 0), W = P(-ext, ext, 0);
+  let s = "";
+  // soil skirt
+  const Nd = [N[0], N[1] + 4], Ed = [E[0], E[1] + 4], Sd = [S[0], S[1] + 4], Wd = [W[0], W[1] + 4];
+  s += poly([W, S, Sd, Wd], "#7C5A3C");
+  s += poly([S, E, Ed, Sd], "#8D6B48");
+  // grass top
+  s += poly([N, E, S, W], theme === "lego" ? "#7FBF3F" : "#8BC34A", theme === "lego" ? "#6FAE33" : "#7CB342", 0.6);
+  // subtle grass highlight
+  const hN = P(-ext, -ext, 0), hMid = P(0, 0, 0);
+  s += '<polygon points="' + pts([N, E, hMid]) + '" fill="rgba(255,255,255,0.06)"/>';
+  return s;
+}
+
+function townSVG(stage, size, theme) {
+  const pal = palette(theme);
+  const type = Math.min(3, Math.floor(stage / 5));
+  const items = [];
+  // props with reveal thresholds
+  items.push(mainBuilding(type, pal));
+  if (stage >= 1) items.push(fenceRun(-1.75, 1.75, 1.75, 1.75, 6, pal.lego ? "#C7A244" : "#CBB994")); // front-left rail
+  if (stage >= 1) items.push(fenceRun(1.75, 1.75, 1.75, -1.75, 6, pal.lego ? "#C7A244" : "#CBB994")); // front-right rail
+  if (stage >= 2) items.push(tree(1.55, 0.05, 1.0, pal));   // right side
+  if (stage >= 3) items.push(gardenPatch(0.1, 0.9, 3, pal));
+  if (stage >= 4) items.push(tree(-1.6, 0.05, 0.9, pal));   // left side
+  if (stage >= 6) items.push(well(-1.4, 0.55, pal));
+  if (stage >= 7) items.push(gardenPatch(-0.95, 0.9, 3, pal));
+  if (stage >= 8) items.push(building(1.05, -0.75, 0.7, 0.7, 0.7, pal.wall2Top, pal.wall2R, pal.wall2L, "#7C5A3C", "#664828", { rh: 0.5 })); // shed/barn (right-back)
+  if (stage >= 9) items.push(hayBales(1.45, 0.6));
+  if (stage >= 11) items.push(pond(-1.5, -0.5));
+  if (stage >= 12) items.push(stall(1.05, 0.95, pal));
+  if (stage >= 13) items.push(gardenPatch(0.9, -1.35, 2, pal));
+  if (stage >= 14) items.push(fountain(0.15, 0.35));
+  if (stage >= 16) { items.push(flag(-1.15, -0.2, type >= 3 ? 2.6 : 1.6, pal)); items.push(flag(1.2, -0.2, type >= 3 ? 2.6 : 1.6, pal)); }
+  if (stage >= 17) items.push(tree(-1.6, 0.95, 0.85, pal));
+  if (stage >= 18) items.push(flag(0, -0.05, type >= 3 ? 3.3 : 2.4, pal));
+  // sort back-to-front
+  items.sort(function (x, y) { return x.d - y.d; });
+  let body = ground(theme);
+  items.forEach(function (it) { body += it.s; });
+  if (stage >= 19) body += '<text x="14" y="20" font-size="9">✨</text><text x="82" y="24" font-size="9">✨</text><text x="50" y="14" font-size="9">✨</text>';
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 100 92" aria-hidden="true">' + body + '</svg>';
+}
+
+function mascotSVG(childKey, stage, size) { return townSVG(stage, size, childKey === "kaio" ? "lego" : "doll"); }
+
+/* ---------- State (synced live via Firebase Realtime Database) ---------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyAgi34Z09TYpBgprh2iBpNrN4PAaa6AEjU",
+  authDomain: "kaio-uka-athletic-program.firebaseapp.com",
+  databaseURL: "https://kaio-uka-athletic-program-default-rtdb.firebaseio.com",
+  projectId: "kaio-uka-athletic-program",
+  storageBucket: "kaio-uka-athletic-program.firebasestorage.app",
+  messagingSenderId: "1087579427984",
+  appId: "1:1087579427984:web:7f6c889c698c73ae827415",
+};
+firebase.initializeApp(firebaseConfig);
+const dbRef = firebase.database().ref("undou-challenge-data");
+
+let syncError = false;
+let isLoaded = false;
+let state = null; // { children: { uka: {...}, kaio: {...} } } -- synced with Firebase
+
+function normalizeChildren(raw) {
+  const todayIso = toDateStr(new Date());
+  const c = (raw && raw.children) || {};
+  const uka = { dates: (c.uka && c.uka.dates) || {}, startDate: (c.uka && c.uka.startDate) || todayIso, baseTier: (c.uka && c.uka.baseTier != null) ? c.uka.baseTier : 0 };
+  const kaio = { dates: (c.kaio && c.kaio.dates) || {}, startDate: (c.kaio && c.kaio.startDate) || todayIso, baseTier: (c.kaio && c.kaio.baseTier != null) ? c.kaio.baseTier : 1 };
+  return { children: { uka: uka, kaio: kaio } };
+}
+
+dbRef.on("value", function (snapshot) {
+  state = normalizeChildren(snapshot.val());
+  isLoaded = true;
+  syncError = false;
+  render();
+}, function (error) {
+  syncError = true;
+  if (!isLoaded) { state = normalizeChildren(null); isLoaded = true; }
+  render();
+});
+
+function pushState() {
+  try { dbRef.set(state); syncError = false; }
+  catch (e) { syncError = true; }
+}
+
+let activeChild = "uka";
+try { activeChild = localStorage.getItem("undou-active-child") || "uka"; } catch (e) {}
+function setActiveChild(key) {
+  activeChild = key;
+  try { localStorage.setItem("undou-active-child", key); } catch (e) {}
+}
+
+let uiTab = "today";
+let calMonth = new Date();
+let selectedDate = null;
+let levelPickerChild = null;
+let houseModalChild = null;
+let viewDateStr = toDateStr(new Date()); // 「きょう」タブで表示・記録している日（過去日の記録用）
+let todayMessage = pickMessage(0);
+let lastToggled = null;
+
+/* ---------- Render helpers ---------- */
+function activityCardHTML(item, accent, checked, dataAttrs) {
+  return '<button class="card" style="' + (checked ? 'background:#FBF8FD;border-color:' + accent + ';' : '') + '" data-action="toggleItem" ' + dataAttrs + '>' +
+    '<div class="card-emoji">' + item.emoji + '</div>' +
+    '<div style="flex:1;text-align:left;"><div class="card-name">' + esc(item.name) + '</div><div class="card-desc">' + esc(item.desc) + '</div></div>' +
+    '<div class="stamp-circle" data-stamp="' + item.id + '" style="' + (checked ? 'background:#FFC93C;border-color:#FFC93C;' : '') + '">' + (checked ? '★' : '') + '</div>' +
+  '</button>';
+}
+function cardGridHTML(items, accent, checked, childKey, dateStr) {
+  return '<div class="card-grid">' + items.map(function(item) {
+    return activityCardHTML(item, accent, checked.includes(item.id), 'data-child="' + childKey + '" data-date="' + dateStr + '" data-item="' + item.id + '"');
+  }).join('') + '</div>';
+}
+
+/* ---------- Views ---------- */
+function renderSwitcher() {
+  return '<div class="switcher-row">' + Object.keys(CHILDREN).map(function(key) {
+    const info = CHILDREN[key], active = key === activeChild;
+    return '<button class="switcher-btn" data-action="selectChild" data-child="' + key + '" style="background:' + (active ? info.accentSoft : '#FFFFFFAA') + ';box-shadow:' + (active ? 'inset 0 0 0 2px ' + info.accent : 'inset 0 0 0 1px #E3ECF2') + ';">' +
+      '<span style="font-size:18px;">' + info.emoji + '</span>' +
+      '<span style="font-family:var(--font-display);font-weight:700;font-size:13px;color:' + (active ? info.accent : '#8A97A3') + ';">' + info.name + '</span>' +
+    '</button>';
+  }).join('') + '</div>';
+}
+function renderHeader(childInfo, activeChild, level, totalPoints, streak) {
+  const progressPct = level.next ? Math.min(100, Math.round((totalPoints - level.min) / (level.next.min - level.min) * 100)) : 100;
+  return '<header class="header">' +
+    '<div style="display:flex;align-items:center;gap:12px;">' +
+      '<div class="mascot-badge house-trigger" data-action="openHouseModal" data-child="' + activeChild + '" style="background:' + childInfo.accentSoft + ';">' + mascotSVG(activeChild, level.stage, 56) + '</div>' +
+      '<div><div class="header-level">' + childInfo.emoji + ' ' + esc(level.name) + '</div>' +
+      '<div class="progress-track"><div class="progress-fill" style="width:' + progressPct + '%;background:linear-gradient(90deg,' + childInfo.accentSoft + ',' + childInfo.accent + ');"></div></div></div>' +
+    '</div>' +
+    '<div class="streak-badge">🔥 ' + streak + '</div>' +
+  '</header>';
+}
+function renderToday(childKey, accent, startDate, baseTier, checked) {
+  const today = new Date(), todayStr = toDateStr(today);
+  const dateStr = viewDateStr;
+  const viewObj = new Date(dateStr + "T00:00:00");
+  const isToday = dateStr === todayStr;
+  const isPast = dateStr < todayStr;
+  const tier = getTier(startDate, dateStr, baseTier);
+  const coreDone = coreDoneCount(checked), bonusDone = bonusDoneCount(checked);
+  const ratio = coreDone / CORE_IDS.length;
+  const daysLeft = daysUntilNextTier(startDate, dateStr, baseTier);
+  const weekdayLabel = ["にちようび","げつようび","かようび","すいようび","もくようび","きんようび","どようび"][viewObj.getDay()];
+  // 日付ナビ（過去日の記録用）: ◀ ぜんじつ / 日付 / よくじつ ▶
+  let html = '<div class="daynav">';
+  html += '<button class="daynav-btn" data-action="dayPrev">◀</button>';
+  html += '<div class="daynav-center"><div class="daynav-date">' + (viewObj.getMonth()+1) + 'がつ' + viewObj.getDate() + 'にち（' + weekdayLabel + '）</div>' +
+    (isToday ? '<div class="daynav-tag" style="color:' + accent + ';">きょう</div>' : '<button class="daynav-today" data-action="dayToday" style="color:' + accent + ';background:' + accent + '1A;">きょうにもどる</button>') + '</div>';
+  html += '<button class="daynav-btn" data-action="dayNext"' + (isToday ? ' disabled style="opacity:0.3;"' : '') + '>▶</button>';
+  html += '</div>';
+  html += '<div class="section-pad">';
+  if (isPast) html += '<div class="past-banner">📅 ' + (viewObj.getMonth()+1) + 'がつ' + viewObj.getDate() + 'にち の きろくをつけています</div>';
+  html += '<div class="big-progress-track"><div class="big-progress-fill" style="width:' + (ratio*100) + '%;background:linear-gradient(90deg,' + accent + '99,' + accent + ');"></div><span class="big-progress-label">' + coreDone + ' / ' + CORE_IDS.length + '</span></div>';
+  html += '<div class="message-banner" style="color:' + accent + ';">' + esc(isToday ? todayMessage : (ratio >= 1 ? 'この日は かんぺき！🌟' : ratio > 0 ? 'この日も がんばったね！' : 'この日の きろくをえらんでね')) + '</div>';
+  html += '<div class="tier-row"><button class="tier-edit-btn" data-action="openLevelPicker" data-child="' + childKey + '"><span class="section-label" style="color:' + accent + ';">' + esc(CORE_TIERS[tier].label) + '</span><span style="font-size:12px;">✏️</span></button>';
+  html += daysLeft !== null
+    ? '<span class="level-pill" style="color:' + accent + ';background:' + accent + '1A;">あと' + daysLeft + 'にちでレベルアップ⤴</span>'
+    : '<span class="level-pill" style="color:' + accent + ';background:' + accent + '1A;">さいこうレベル🏅</span>';
+  html += '</div>';
+  html += cardGridHTML(CORE_TIERS[tier].items, accent, checked, childKey, dateStr);
+  html += '<div class="section-label" style="color:#3E9C87;margin-top:16px;">プラスアルファ（ボーナス）</div>';
+  html += cardGridHTML(PLUS_ALPHA_ITEMS, "#3E9C87", checked, childKey, dateStr);
+  if (bonusDone > 0) html += '<div class="bonus-note">✨ ボーナス ' + bonusDone + 'こ たっせい！</div>';
+  html += '</div>';
+  return html;
+}
+function renderCalendar(childData, accent, todayStr) {
+  const year = calMonth.getFullYear(), month = calMonth.getMonth();
+  const firstDay = new Date(year, month, 1), startWeekday = firstDay.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  let cells = [];
+  for (let i = 0; i < startWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  let html = '<div class="section-pad">';
+  html += '<div class="cal-nav"><button class="nav-btn" data-action="calPrev">‹</button><div class="cal-title">' + year + '年 ' + (month+1) + '月</div><button class="nav-btn" data-action="calNext">›</button></div>';
+  html += '<div class="week-row">' + ["日","月","火","水","木","金","土"].map(function(w,i){ return '<div class="week-label" style="color:' + (i===0?'#FF6B5B':i===6?'#4FA8E0':'#7A8A99') + ';">' + w + '</div>'; }).join('') + '</div>';
+  html += '<div class="cal-grid">';
+  cells.forEach(function(d) {
+    if (d === null) { html += '<div></div>'; return; }
+    const dateObj = new Date(year, month, d), ds = toDateStr(dateObj);
+    const checked = childData.dates[ds] || [];
+    const ratio = coreDoneCount(checked) / CORE_IDS.length;
+    const hasBonus = bonusDoneCount(checked) > 0;
+    const isToday = ds === todayStr;
+    const isFuture = dateObj > new Date(todayStr + "T23:59:59");
+    const mark = ratio >= 1 ? "🌟" : ratio > 0 ? "⭐" : isFuture ? "" : "·";
+    html += '<button class="day-cell" ' + (isFuture ? 'disabled' : 'data-action="selectDay" data-date="' + ds + '"') + ' style="' + (isToday ? 'box-shadow:inset 0 0 0 2px ' + accent + ';' : '') + 'opacity:' + (isFuture ? 0.35 : 1) + ';">' +
+      '<span class="day-num">' + d + '</span><span class="day-mark">' + mark + (hasBonus ? '✨' : '') + '</span></button>';
+  });
+  html += '</div></div>';
+  return html;
+}
+function renderDayModal(childKey, accent, startDate, baseTier, dateStr, checked) {
+  const dateObj = new Date(dateStr + "T00:00:00");
+  const tier = getTier(startDate, dateStr, baseTier);
+  let html = '<div class="modal-overlay" data-action="closeDayModal"><div class="modal-card" onclick="event.stopPropagation()">';
+  html += '<div class="modal-head"><div class="modal-title">' + (dateObj.getMonth()+1) + 'がつ' + dateObj.getDate() + 'にち</div><button class="close-btn" data-action="closeDayModal">✕</button></div>';
+  html += '<div class="section-label" style="color:' + accent + ';margin:12px 0 8px;">' + esc(CORE_TIERS[tier].label) + '</div>';
+  html += cardGridHTML(CORE_TIERS[tier].items, accent, checked, childKey, dateStr);
+  html += '<div class="section-label" style="color:#3E9C87;margin:16px 0 8px;">プラスアルファ（ボーナス）</div>';
+  html += cardGridHTML(PLUS_ALPHA_ITEMS, "#3E9C87", checked, childKey, dateStr);
+  html += '</div></div>';
+  return html;
+}
+function renderTogether(todayStr, today) {
+  const childKeys = Object.keys(CHILDREN);
+  const summaries = childKeys.map(function(key) {
+    const childData = state.children[key], info = CHILDREN[key];
+    const total = sumPoints(childData.dates), level = getLevel(key, total);
+    const streak = calcStreak(childData.dates, today);
+    const todayDone = (childData.dates[todayStr] || []).length;
+    return { key: key, info: info, total: total, level: level, streak: streak, todayDone: todayDone };
+  });
+  const sorted = summaries.slice().sort(function(a,b){ return b.todayDone - a.todayDone; });
+  const leader = sorted[0], trailer = sorted[1], isTie = leader.todayDone === trailer.todayDone;
+  let html = '<div class="section-pad">';
+  html += '<div class="together-grid">';
+  summaries.forEach(function(s) {
+    html += '<button class="together-card" data-action="selectChild" data-child="' + s.key + '" style="background:' + s.info.accentSoft + ';">' +
+      '<span class="house-trigger" data-action="openHouseModal" data-child="' + s.key + '">' + mascotSVG(s.key, s.level.stage, 52) + '</span>' +
+      '<div class="together-name">' + s.info.emoji + ' ' + s.info.name + '</div>' +
+      '<div class="together-level">' + esc(s.level.name) + '</div>' +
+      '<div class="together-today-track"><div class="together-today-fill" style="width:' + (s.todayDone/TODAY_MAX*100) + '%;background:' + s.info.accent + ';"></div></div>' +
+      '<div class="together-today-label">きょう ' + s.todayDone + '/' + TODAY_MAX + '</div>' +
+      '<div class="together-stats"><span>🔥 ' + s.streak + '</span><span>🏆 ' + s.total + '</span></div>' +
+    '</button>';
+  });
+  html += '</div>';
+  html += '<div class="vs-banner">' + (isTie ? 'きょうは ひきわけ！🤝' : 'きょうは ' + leader.info.emoji + leader.info.name + ' が ' + (leader.todayDone - trailer.todayDone) + 'こ リード中！') + '</div>';
+  html += '<div class="section-title">今週のきほんメニュー くらべっこ</div>';
+  html += '<div class="chart-legend">' + childKeys.map(function(key){ return '<div style="display:flex;align-items:center;gap:5px;"><span class="legend-dot" style="background:' + CHILDREN[key].accent + ';"></span><span style="font-size:12px;color:#7A8A99;">' + CHILDREN[key].name + '</span></div>'; }).join('') + '</div>';
+  const weekData = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = toDateStr(d);
+    const row = { label: ["日","月","火","水","木","金","土"][d.getDay()] };
+    childKeys.forEach(function(key) { row[key] = coreDoneCount(state.children[key].dates[ds] || []); });
+    weekData.push(row);
+  }
+  html += '<div class="chart-card"><div class="chart-bars">';
+  weekData.forEach(function(row) {
+    html += '<div class="chart-bar-col"><div style="display:flex;gap:2px;width:100%;height:100px;align-items:flex-end;">';
+    childKeys.forEach(function(key) {
+      const h = (row[key] / CORE_IDS.length) * 100;
+      html += '<div class="chart-bar-track" style="height:100px;"><div class="chart-bar" style="height:' + h + '%;background:' + CHILDREN[key].accent + ';width:100%;"></div></div>';
+    });
+    html += '</div><div class="chart-bar-label">' + row.label + '</div></div>';
+  });
+  html += '</div></div></div>';
+  return html;
+}
+function renderRecords(childData, childKey, childInfo, totalPoints, streak, level, todayStr) {
+  const currentTier = getTier(childData.startDate, todayStr, childData.baseTier);
+  const totalDaysActive = Object.values(childData.dates).filter(function(a){return a.length>0;}).length;
+  const last7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = toDateStr(d);
+    const done = coreDoneCount(childData.dates[ds] || []);
+    last7.push({ label: ["日","月","火","水","木","金","土"][d.getDay()], value: done, isToday: i === 0 });
+  }
+  let html = '<div class="section-pad">';
+  html += '<div class="stats-row">' +
+    '<div class="stat-card"><span class="stat-icon">🏆</span><div class="stat-value">' + totalPoints + 'こ</div><div class="stat-label">累計スタンプ</div></div>' +
+    '<div class="stat-card"><span class="stat-icon">🔥</span><div class="stat-value">' + streak + '日</div><div class="stat-label">連続日数</div></div>' +
+    '<div class="stat-card"><span class="stat-icon">📅</span><div class="stat-value">' + totalDaysActive + '日</div><div class="stat-label">がんばった日</div></div>' +
+  '</div>';
+  html += '<div class="tree-stat-card" style="background:' + childInfo.accentSoft + ';"><span class="house-trigger" data-action="openHouseModal" data-child="' + childKey + '">' + mascotSVG(childKey, level.stage, 64) + '</span>' +
+    '<div><div class="tree-stat-name">' + esc(level.name) + '</div><div class="tree-stat-sub">' + (level.next ? 'つぎまで あと ' + (level.next.min - totalPoints) + 'こ' : 'さいだいレベル！') + '</div></div></div>';
+  html += '<button class="tier-banner" data-action="openLevelPicker" data-child="' + childKey + '" style="border-color:' + childInfo.accent + ';">いまの ' + esc(CORE_TIERS[currentTier].label) + ' <span style="font-size:12px;">✏️</span></button>';
+  html += '<div class="section-title">今週のきろく</div>';
+  html += '<div class="chart-card"><div class="chart-bars">';
+  last7.forEach(function(row) {
+    const h = (row.value / CORE_IDS.length) * 100;
+    const color = row.isToday ? childInfo.accent : row.value >= CORE_IDS.length ? "#5FB85C" : row.value > 0 ? "#9ED89A" : "#E3ECF2";
+    html += '<div class="chart-bar-col"><div class="chart-bar-track"><div class="chart-bar" style="height:' + h + '%;background:' + color + ';"></div></div><div class="chart-bar-label">' + row.label + '</div></div>';
+  });
+  html += '</div></div></div>';
+  return html;
+}
+function renderLevelPickerModal(childKey) {
+  const info = CHILDREN[childKey];
+  const childData = state.children[childKey];
+  const todayStr = toDateStr(new Date());
+  const currentTier = getTier(childData.startDate, todayStr, childData.baseTier);
+  let html = '<div class="modal-overlay" data-action="closeLevelPicker"><div class="modal-card" onclick="event.stopPropagation()">';
+  html += '<div class="modal-head"><div class="modal-title">' + info.emoji + ' ' + info.name + ' のレベルをえらぶ</div><button class="close-btn" data-action="closeLevelPicker">✕</button></div>';
+  html += '<div class="level-picker-list">';
+  CORE_TIERS.forEach(function(t, idx) {
+    const selected = idx === currentTier;
+    html += '<button class="level-option" data-action="selectTier" data-child="' + childKey + '" data-tier="' + idx + '" style="' + (selected ? 'border-color:' + info.accent + ';background:' + info.accent + '14;' : '') + '">' +
+      '<div class="level-option-head"><span class="level-option-title">' + esc(t.label) + '</span>' + (selected ? '<span style="font-family:var(--font-display);font-weight:700;font-size:11px;color:' + info.accent + ';">えらんでいる ✓</span>' : '') + '</div>' +
+      '<div class="level-option-desc">' + t.items.map(function(i){return i.name;}).join('・') + '</div>' +
+    '</button>';
+  });
+  html += '</div><div class="level-picker-note">えらんだレベルから、また2週間ごとにレベルアップしていきます</div></div></div>';
+  return html;
+}
+function renderTabBar() {
+  const tabs = [
+    { id: "today", label: "きょう", icon: "🏠" },
+    { id: "calendar", label: "カレンダー", icon: "📅" },
+    { id: "together", label: "ふたり", icon: "👨‍👩‍👧‍👦" },
+    { id: "records", label: "きろく", icon: "📊" },
+  ];
+  const activeAccent = CHILDREN[activeChild].accent;
+  return '<nav class="tab-bar">' + tabs.map(function(t) {
+    const active = uiTab === t.id;
+    const color = active ? (t.id === "together" ? "#3E9C87" : activeAccent) : "#9AA9B5";
+    return '<button class="tab-btn" data-action="setTab" data-tab="' + t.id + '"><span class="tab-icon">' + t.icon + '</span><span class="tab-label" style="color:' + color + ';font-weight:' + (active?700:400) + ';">' + t.label + '</span></button>';
+  }).join('') + '</nav>';
+}
+
+/* ---------- Main render ---------- */
+function renderHouseModal(childKey) {
+  const info = CHILDREN[childKey];
+  const childData = state.children[childKey];
+  const totalPoints = sumPoints(childData.dates);
+  const level = getLevel(childKey, totalPoints);
+  let html = '<div class="modal-overlay house-modal-overlay" data-action="closeHouseModal"><div class="house-modal-card" onclick="event.stopPropagation()">';
+  html += '<button class="close-btn house-modal-close" data-action="closeHouseModal">✕</button>';
+  html += mascotSVG(childKey, level.stage, 240);
+  html += '<div class="house-modal-name">' + info.emoji + ' ' + esc(info.name) + '</div>';
+  html += '<div class="house-modal-level">' + esc(level.name) + '</div>';
+  html += '</div></div>';
+  return html;
+}
+
+function render() {
+  const app = document.getElementById("app");
+
+  if (!isLoaded || !state) {
+    app.innerHTML = '<div class="loading-screen"><div style="font-size:40px;">🌱</div><div style="margin-top:8px;color:#557A5C;font-family:var(--font-body);">よみこみちゅう...</div></div>';
+    return;
+  }
+
+  const activeChildData = state.children[activeChild];
+  const childInfo = CHILDREN[activeChild];
+  const totalPoints = sumPoints(activeChildData.dates);
+  const level = getLevel(activeChild, totalPoints);
+  const today = new Date(), todayStr = toDateStr(today);
+  const streak = calcStreak(activeChildData.dates, today);
+
+  if (viewDateStr > todayStr) viewDateStr = todayStr; // 未来日は表示しない
+  let main = "";
+  if (uiTab === "today") main = renderToday(activeChild, childInfo.accent, activeChildData.startDate, activeChildData.baseTier, activeChildData.dates[viewDateStr] || []);
+  else if (uiTab === "calendar") main = renderCalendar(activeChildData, childInfo.accent, todayStr);
+  else if (uiTab === "together") main = renderTogether(todayStr, today);
+  else if (uiTab === "records") main = renderRecords(activeChildData, activeChild, childInfo, totalPoints, streak, level, todayStr);
+
+  let html = '<div class="page"><div class="container">';
+  html += renderSwitcher();
+  html += renderHeader(childInfo, activeChild, level, totalPoints, streak);
+  if (syncError) html += '<div class="error-banner">どうきできませんでした。つうしんじょうきょうを確認してね。</div>';
+  html += '<main class="main">' + main + '</main>';
+  html += renderTabBar();
+  if (selectedDate) html += renderDayModal(activeChild, childInfo.accent, activeChildData.startDate, activeChildData.baseTier, selectedDate, activeChildData.dates[selectedDate] || []);
+  if (levelPickerChild) html += renderLevelPickerModal(levelPickerChild);
+  if (houseModalChild) html += renderHouseModal(houseModalChild);
+  html += '</div></div>';
+  app.innerHTML = html;
+
+  if (lastToggled) {
+    const el = app.querySelector('[data-stamp="' + lastToggled + '"]');
+    if (el) { el.classList.add("pop"); setTimeout(function(){ el.classList.remove("pop"); }, 600); }
+    lastToggled = null;
+  }
+}
+
+/* ---------- Actions ---------- */
+function toggleItem(childKey, dateStr, itemId) {
+  const childData = state.children[childKey];
+  const dates = Object.assign({}, childData.dates);
+  const set = new Set(dates[dateStr] || []);
+  const willCheck = !set.has(itemId);
+  if (willCheck) set.add(itemId); else set.delete(itemId);
+  dates[dateStr] = Array.from(set);
+  state.children[childKey] = Object.assign({}, childData, { dates: dates });
+  pushState();
+  if (willCheck) lastToggled = itemId;
+  if (CORE_IDS.includes(itemId)) {
+    const ratio = coreDoneCount(dates[dateStr]) / CORE_IDS.length;
+    todayMessage = pickMessage(ratio);
+  }
+}
+function setChildTier(childKey, tierIndex) {
+  const childData = state.children[childKey];
+  const todayIso = toDateStr(new Date());
+  state.children[childKey] = Object.assign({}, childData, { baseTier: tierIndex, startDate: todayIso });
+  pushState();
+  levelPickerChild = null;
+}
+
+document.addEventListener("click", function(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+  const action = target.dataset.action;
+  if (action === "selectChild") { setActiveChild(target.dataset.child); }
+  else if (action === "setTab") { if (target.dataset.tab === "today") viewDateStr = toDateStr(new Date()); uiTab = target.dataset.tab; }
+  else if (action === "toggleItem") { toggleItem(target.dataset.child, target.dataset.date, target.dataset.item); }
+  else if (action === "dayPrev") { const d = new Date(viewDateStr + "T00:00:00"); d.setDate(d.getDate() - 1); viewDateStr = toDateStr(d); }
+  else if (action === "dayNext") { const d = new Date(viewDateStr + "T00:00:00"); d.setDate(d.getDate() + 1); const ds = toDateStr(d); if (ds <= toDateStr(new Date())) viewDateStr = ds; }
+  else if (action === "dayToday") { viewDateStr = toDateStr(new Date()); }
+  else if (action === "calPrev") { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1); }
+  else if (action === "calNext") { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1); }
+  else if (action === "selectDay") { selectedDate = target.dataset.date; }
+  else if (action === "closeDayModal") { selectedDate = null; }
+  else if (action === "openLevelPicker") { levelPickerChild = target.dataset.child; }
+  else if (action === "closeLevelPicker") { levelPickerChild = null; }
+  else if (action === "selectTier") { setChildTier(target.dataset.child, parseInt(target.dataset.tier, 10)); }
+  else if (action === "openHouseModal") { houseModalChild = target.dataset.child; }
+  else if (action === "closeHouseModal") { houseModalChild = null; }
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
