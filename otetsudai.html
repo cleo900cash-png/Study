@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>おてつだい ぬりつぶしシート</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@600;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  :root{
+    --ground:#FAF8F3;--surface:#FFFFFF;--surface-2:#F3F0E8;
+    --ink:#1A1F26;--ink-2:#4A5560;--ink-3:#7B8794;
+    --line:#E2DED3;--line-2:#CFC9BA;
+    --ai:#1F4E6B;--ai-soft:#E6EEF3;
+    --ho:#A9622F;--ho-soft:#F6EBE0;
+    --warn:#A4741B;--warn-soft:#F7EEDA;
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --sans:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+    --serif:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#13171C;--surface:#1B2027;--surface-2:#232932;
+    --ink:#E9E6DF;--ink-2:#AFB8C2;--ink-3:#7E8894;
+    --line:#2E353F;--line-2:#3E4650;
+    --ai:#79AECC;--ai-soft:#1D2A33;--ho:#D29866;--ho-soft:#2C241C;
+    --warn:#D6AC51;--warn-soft:#2E2718;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#13171C;--surface:#1B2027;--surface-2:#232932;
+    --ink:#E9E6DF;--ink-2:#AFB8C2;--ink-3:#7E8894;
+    --line:#2E353F;--line-2:#3E4650;
+    --ai:#79AECC;--ai-soft:#1D2A33;--ho:#D29866;--ho-soft:#2C241C;
+    --warn:#D6AC51;--warn-soft:#2E2718;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.9;margin:0;padding-inline:20px;padding-block:0 64px;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+  .wrap{max-width:900px;margin:0 auto}
+  ruby{ruby-position:over}
+  rt{font-size:.52em;font-weight:400;color:var(--ink-3);letter-spacing:0;line-height:1}
+  button,select,input{font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+
+  header.mast{padding-block:44px 22px;border-bottom:2px solid var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px}
+  h1{font-family:var(--serif);font-weight:900;font-size:clamp(27px,5.5vw,40px);line-height:1.4;margin:0 0 14px;text-wrap:balance}
+  .standfirst{font-size:15.5px;color:var(--ink-2);margin:0;max-width:56ch;line-height:2}
+
+  /* mode switch */
+  .modebar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:20px}
+  .modes{display:flex;gap:1px;background:var(--line);border:1px solid var(--line)}
+  .modes button{font-size:13.5px;font-weight:700;border:0;background:var(--surface);color:var(--ink-3);padding:11px 20px;cursor:pointer;min-height:44px;line-height:1.4}
+  .modes button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+  .savehint{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+
+  section{padding-block:36px 4px}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(19px,3.2vw,24px);margin:0 0 6px;line-height:1.6}
+  h2 .num{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);letter-spacing:.1em;display:block;margin-bottom:5px;font-weight:500}
+  .lede{color:var(--ink-2);margin:0 0 16px;max-width:60ch;font-size:14.5px;line-height:2}
+
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:20px}
+  .rule{background:var(--surface);padding:18px 16px;display:flex;flex-direction:column;gap:8px}
+  .rule .no{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-3)}
+  .rule .txt{font-size:14.5px;line-height:1.95;color:var(--ink)}
+  .rule b{font-weight:700}
+
+  .jobs{border:1px solid var(--line);background:var(--surface);margin-top:16px}
+  .jrow{display:grid;grid-template-columns:1fr 70px 96px;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line)}
+  .jrow:last-child{border-bottom:0}
+  .jrow .nm{font-size:15px;line-height:2}
+  .jrow .bx{display:flex;gap:3px}
+  .jrow .bx i{width:13px;height:13px;border:1.5px solid var(--ai);display:block}
+  .ho-mode .jrow .bx i{border-color:var(--ho)}
+  .jrow button{font-size:13.5px;font-weight:700;min-height:44px;width:100%;background:var(--ai);color:#fff;border:0;cursor:pointer;line-height:1.3}
+  .ho-mode .jrow button{background:var(--ho)}
+  .jrow button:active{opacity:.7}
+  .jgroup{padding:11px 14px 3px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-3);background:var(--surface-2);border-bottom:1px solid var(--line);border-top:1px solid var(--line)}
+  .jobs .jgroup:first-child{border-top:0}
+
+  .bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-top:22px}
+  .tabs{display:flex;gap:1px;background:var(--line);border:1px solid var(--line)}
+  .tabs button{font-size:15px;font-weight:700;border:0;background:var(--surface);color:var(--ink-3);padding:11px 26px;cursor:pointer;min-height:48px;line-height:1.4}
+  .tabs button[aria-pressed="true"]{background:var(--ai);color:#fff}
+  .tabs button.ho[aria-pressed="true"]{background:var(--ho)}
+  .navbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .navbar button{font-family:var(--mono);font-size:13px;padding:0 15px;min-height:44px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink);cursor:pointer}
+  .navbar .mlabel{font-family:var(--mono);font-size:13.5px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .status{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-top:8px;min-height:16px}
+
+  .cal{margin-top:14px;border:1px solid var(--line);background:var(--surface)}
+  .calhd{display:grid;grid-template-columns:52px 1fr 44px;gap:8px;padding:8px 12px;background:var(--surface-2);border-bottom:1px solid var(--line-2);font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-3)}
+  .calhd span:last-child{text-align:right}
+  .drow{display:grid;grid-template-columns:52px 1fr 44px;gap:8px;align-items:center;padding:3px 12px;border-bottom:1px solid var(--line)}
+  .drow:last-child{border-bottom:0}
+  .drow.today{background:var(--ai-soft)}
+  .ho-mode .drow.today{background:var(--ho-soft)}
+  .drow.wk .dl{color:var(--ho)}
+  .dl{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;line-height:1.4}
+  .dl b{color:var(--ink);font-size:13px;font-weight:500}
+  .cells{display:grid;gap:3px;user-select:none;-webkit-user-select:none}
+  .sq{aspect-ratio:1/1;min-height:26px;border:1.5px solid var(--line-2);background:transparent;cursor:pointer;padding:0;min-width:0}
+  .sq.on{background:var(--ai);border-color:var(--ai)}
+  .ho-mode .sq.on{background:var(--ho);border-color:var(--ho)}
+  .dt{font-family:var(--mono);font-size:12px;color:var(--ink-3);text-align:right;font-variant-numeric:tabular-nums}
+  .dt.has{color:var(--ink)}
+
+  .sheetfoot{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:baseline;padding:16px 14px;border-top:1px solid var(--line-2);background:var(--surface-2)}
+  .sf{display:flex;flex-direction:column;gap:2px}
+  .sf .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-3)}
+  .sf .big{font-family:var(--mono);font-size:24px;color:var(--ink);line-height:1.15;font-variant-numeric:tabular-nums}
+  .sf .big em{font-style:normal;font-size:12.5px;color:var(--ink-3)}
+  .sf.cap .big{color:var(--warn)}
+  .goal{font-size:14px;color:var(--ink-2);line-height:1.9;margin-top:14px}
+
+  .parent{margin-top:14px;border:1px solid var(--line);background:var(--surface)}
+  .parent .ph{background:var(--surface-2);padding:11px 16px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-3);border-bottom:1px solid var(--line-2)}
+  .parent .pb{padding:18px 18px 22px;font-size:13.5px;line-height:1.85;color:var(--ink-2)}
+  .parent .pb p{margin:0 0 12px}
+  .parent .pb p:last-child{margin:0}
+  .parent .pb ol{margin:0 0 12px;padding-left:20px}
+  .parent b{color:var(--ink)}
+  .cfg{display:flex;flex-wrap:wrap;gap:20px;margin:0 0 16px}
+  .cfg label{font-family:var(--mono);font-size:11px;color:var(--ink-3);display:flex;flex-direction:column;gap:4px}
+  .cfg input{font-family:var(--mono);font-size:18px;width:6em;background:transparent;border:0;border-bottom:1px dashed var(--line-2);color:var(--ink);padding:4px 0}
+  table.plain{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  table.plain th{background:var(--surface-2);font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--ink-3);text-align:left;font-weight:500;padding:9px 11px;border:1px solid var(--line)}
+  table.plain td{padding:10px 11px;border:1px solid var(--line);vertical-align:top;line-height:1.7}
+
+  .actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:22px}
+  .actions button{font-size:13px;font-weight:700;padding:0 18px;min-height:44px;background:var(--surface);color:var(--ink);border:1px solid var(--line-2);cursor:pointer}
+  .actions select{font-size:13px;padding:10px 12px;min-height:44px;background:var(--surface);color:var(--ink);border:1px solid var(--line-2)}
+  footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--ink-3);line-height:1.9}
+
+  /* ---------- kid mode ---------- */
+  body.kid .parentonly{display:none !important}
+  body.kid header.mast{padding-block:30px 18px}
+  body.kid h1{font-size:clamp(25px,6vw,34px)}
+  body.kid .standfirst{font-size:15px}
+  body.kid section{padding-block:26px 4px}
+  body.kid .jrow{grid-template-columns:1fr 62px 112px;padding:7px 12px}
+  body.kid .jrow .nm{font-size:16.5px}
+  body.kid .jrow button{min-height:52px;font-size:15px}
+  body.kid .sq{min-height:32px;border-width:2px}
+  body.kid .cells{gap:4px}
+  body.kid .drow{padding:5px 10px;grid-template-columns:48px 1fr 38px}
+  body.kid .dl b{font-size:15px}
+  body.kid .sf .big{font-size:30px}
+  body.kid .goal{font-size:16px}
+  body.kid .rule .txt{font-size:15.5px}
+  @media (max-width:560px){
+    body.kid .jrow{grid-template-columns:1fr 96px;row-gap:6px}
+    body.kid .jrow .bx{display:none}
+  }
+
+  .printonly{display:none}
+  @media print{
+    body{background:#fff;color:#000;padding:0;font-size:10pt;line-height:1.8}
+    /* only the two designed sheets print — never the on-screen page */
+    .wrap > header, .wrap > section, .wrap > footer{display:none !important}
+    #printSection{display:block !important;padding:0}
+    #printSection > h2, #printSection > .lede{display:none !important}
+    .noprint{display:none !important}
+    .printonly{display:block}
+    rt{color:#444}
+    .ppage{break-after:page}
+    .ppage:last-child{break-after:auto}
+    .ptitle{font-family:var(--serif);font-size:18pt;font-weight:900;margin:0 0 2mm;border-bottom:1.4pt solid #000;padding-bottom:2mm;line-height:1.5}
+    .psub{font-size:9pt;margin:0 0 4mm;line-height:1.8}
+    .prules{display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin:5mm 0 7mm}
+    .prule-card{border:1pt solid #000;padding:4mm 4.5mm;display:flex;gap:4mm;align-items:flex-start}
+    .prule-card .pn{font-family:var(--mono);font-size:20pt;line-height:1;color:#000}
+    .prule-card .pt{font-size:11pt;line-height:2.1}
+    .pjobs-head{font-family:var(--serif);font-size:13pt;font-weight:600;margin:0 0 2mm}
+    .pjcols{display:grid;grid-template-columns:1fr 1fr;gap:0 6mm}
+    .pjobs{width:100%;border-collapse:collapse;font-size:9.5pt}
+    .pjobs th{background:#eee;border:.5pt solid #888;padding:2px 5px;text-align:left;font-size:8pt;font-family:var(--mono);font-weight:500}
+    .pjobs td{border:.5pt solid #888;padding:2.5px 5px;line-height:2}
+    .pjobs td.c{text-align:center;width:22%;font-family:var(--mono);white-space:nowrap}
+    .pend{margin-top:6mm;border-top:1pt solid #000;padding-top:3mm;font-size:10pt;line-height:2}
+    .phalf{padding-bottom:4mm}
+    .phalf + .phalf{border-top:1.2pt dashed #666;padding-top:5mm}
+    .phead{display:flex;align-items:baseline;gap:5mm;margin:0 0 3mm}
+    .phead .pname{font-family:var(--serif);font-size:17pt;font-weight:900}
+    .phead .pmeta{font-size:9pt;font-family:var(--mono)}
+    .phead .pmeta span{border-bottom:.7pt solid #000;padding:0 11mm 0 1mm}
+    .pcols{display:grid;gap:0 4mm}
+    .ptab{width:100%;border-collapse:collapse;table-layout:fixed}
+    .ptab th{font-size:7pt;font-family:var(--mono);font-weight:500;border-bottom:.6pt solid #888;padding:0 0 1mm;text-align:left;color:#444}
+    .ptab th.r{text-align:right}
+    .ptab th:first-child{width:10mm}
+    .ptab th.r{width:7mm}
+    .ptab td{padding:0;border:0;vertical-align:middle}
+    .ptab td.d{font-family:var(--mono);font-size:8.5pt;width:10mm;white-space:nowrap}
+    .ptab td.t{width:7mm;border-bottom:.4pt solid #bbb}
+    .pcells{display:flex;gap:.8mm;padding:3.2mm 1.5mm 3.2mm 0}
+    .pcells div{border:.55pt solid #666;width:6.7mm;height:6.7mm;flex:0 0 auto}
+    .week .pcells{gap:2mm;padding:1.6mm 2mm 1.6mm 0}
+    .week .pcells div{width:9mm;height:9mm}
+    .week .ptab th:first-child{width:26mm}
+    .week .ptab th.r{width:12mm}
+    .week .ptab td.d{font-size:9pt;width:26mm}
+    .week .ptab td.t{width:12mm}
+    .week .phead .pname{font-size:14pt}
+    .ptot{display:flex;gap:7mm;margin-top:2.5mm;font-size:9pt;font-family:var(--mono)}
+    .ptot span{border-bottom:.8pt solid #000;padding:0 12mm 0 2mm}
+    .pnote{font-size:8pt;margin-top:2mm;line-height:1.7}
+    @page{margin:10mm}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="mast">
+  <p class="eyebrow parentonly">Chores &amp; Allowance — Fill-in Sheet</p>
+  <h1>おてつだい<br>ぬりつぶしシート</h1>
+  <p class="standfirst">1<ruby>日<rt>にち</rt></ruby>に 1<ruby>行<rt>ぎょう</rt></ruby>ずつ。おてつだいを したら、その<ruby>日<rt>ひ</rt></ruby>の マスを ぬります。<ruby>兄妹<rt>きょうだい</rt></ruby>で <ruby>同<rt>おな</rt></ruby>じ シート、<ruby>同<rt>おな</rt></ruby>じ ルール。</p>
+  <div class="modebar noprint">
+    <div class="modes" role="group" aria-label="がめんを えらぶ">
+      <button type="button" id="mode-kid" aria-pressed="false">こども</button>
+      <button type="button" id="mode-parent" aria-pressed="true">おうちの人</button>
+    </div>
+    <span class="savehint" id="savehint"></span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="num">01 — Rules</span>おやくそくは 4つ</h2>
+  <div class="rules">
+    <div class="rule"><span class="no">01</span><span class="txt">おてつだいを したら、<b>きょうの <ruby>行<rt>ぎょう</rt></ruby>の マスを ぬる</b>。<ruby>何<rt>なに</rt></ruby>を したか いえること</span></div>
+    <div class="rule"><span class="no">02</span><span class="txt">1<ruby>日<rt>にち</rt></ruby>の <ruby>行<rt>ぎょう</rt></ruby>は <b>10マス</b>。ぬりきったら その<ruby>日<rt>ひ</rt></ruby>は おしまい</span></div>
+    <div class="rule"><span class="no">03</span><span class="txt">1か<ruby>月<rt>げつ</rt></ruby>で <b>100マス</b> こえたら もくひょう たっせい</span></div>
+    <div class="rule"><span class="no">04</span><span class="txt">もらったら、<ruby>半分<rt>はんぶん</rt></ruby>は <b>ためる</b>、<ruby>半分<rt>はんぶん</rt></ruby>は <b>つかう</b></span></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">02 — Jobs</span>できること と ぬれる マスの かず</h2>
+  <p class="lede"><ruby>侃生<rt>かいお</rt></ruby>も <ruby>羽栞<rt>うか</rt></ruby>も おなじ リストです。ボタンを おすと、きょうの <ruby>行<rt>ぎょう</rt></ruby>が ぬれます。</p>
+  <div class="jobs" id="jobs"></div>
+</section>
+
+<section>
+  <h2><span class="num">03 — Sheet</span>1か月の シート</h2>
+
+  <div class="bar noprint">
+    <div class="tabs" role="group" aria-label="だれの シートか えらぶ">
+      <button id="tab-kansei" type="button" aria-pressed="true">侃生</button>
+      <button id="tab-hanon" class="ho" type="button" aria-pressed="false">羽栞</button>
+    </div>
+    <div class="navbar">
+      <button type="button" id="prevM">◀</button>
+      <span class="mlabel" id="mlabel">—</span>
+      <button type="button" id="nextM">▶</button>
+    </div>
+  </div>
+  <p class="status noprint" id="status">よみこみちゅう…</p>
+
+  <div class="cal noprint">
+    <div class="calhd"><span>ひ</span><span>ぬったマス（1日 10マスまで）</span><span>ごうけい</span></div>
+    <div id="days"></div>
+    <div class="sheetfoot">
+      <span class="sf"><span class="lab">こんげつ</span><span class="big" id="total">0<em> / 100 マス</em></span></span>
+      <span class="sf" id="todayWrap"><span class="lab">きょう</span><span class="big" id="today">0<em> / 10</em></span></span>
+      <span class="sf parentonly"><span class="lab">きんがく</span><span class="big" id="money">$0.00</span></span>
+    </div>
+  </div>
+  <p class="goal" id="goal">—</p>
+</section>
+
+<section class="parentonly">
+  <h2><span class="num">04 — For parents</span>おうちの人へ</h2>
+
+  <div class="parent">
+    <div class="ph">運用の設定</div>
+    <div class="pb">
+      <div class="cfg">
+        <label>1マスあたり（ドル）<input id="rate" type="number" step="0.01" min="0" value="0.10" inputmode="decimal" aria-label="1マスあたりの金額（ドル）"></label>
+        <label>1日の上限（マス）<input id="cap" type="number" step="1" min="1" max="20" value="10" inputmode="numeric" aria-label="1日の上限マス数"></label>
+        <label>1か月の目標（マス）<input id="goalN" type="number" step="10" min="10" value="100" inputmode="numeric" aria-label="1か月の目標マス数"></label>
+      </div>
+      <p><b>1枚 = 1か月。</b>行が日づけになっているので、毎日同じ紙（または画面）に書き足していきます。1日の上限が10マスなので、1行10マスがそのまま「その日の上限」です。月末にマスを数えて精算します。</p>
+      <p><b>侃生</b>：マス数 × 単価を、翌月の第1日曜に精算。半分は「ためるふくろ」、半分は「つかうふくろ」へ。<br>
+      <b>羽栞</b>：目標マス達成で<b>「体験のごほうび」</b>（公園を選ぶ権利、パンケーキの係、絵本を1冊選ぶ権利など）。5歳は抽象的な金銭概念の理解にまだ早い時期なので、現金は渡しません。シートの中身とルールは兄と同じです。</p>
+      <p>金額の公的な推奨値は AAP も CFPB も示していません。最初の1か月は金額を気にせず回し、実績が出てから単価と目標を決め直すと現実的な額に落ち着きます。</p>
+    </div>
+  </div>
+
+  <div class="parent">
+    <div class="ph">子どものiPadで使う</div>
+    <div class="pb">
+      <ol>
+        <li>このHTMLファイルをiPadの「ファイル」アプリ（iCloud Drive）に入れる</li>
+        <li>ファイルをタップして開く。<b>最初からこども画面で開きます</b></li>
+        <li>「おうちの人」に切り替えると、金額の設定と印刷が使えます</li>
+      </ol>
+      <p><b>Claudeアプリも、アカウントも、インターネットも不要です。</b>記録はそのiPadの中に保存されます。端末ごとに別々の記録になるので、侃生のiPad、羽栞のiPad、Cleo の画面はそれぞれ独立しています。</p>
+      <p><b>注意。</b>ファイルとして開いた場合、記録の保存はWebリンク版より確実性が落ちます（iPadのSafariがファイルごとの保存領域を消すことがあります）。月末に合計マス数だけ印刷シートかノートに控えておくと安全です。<b>印刷したシートを主、iPadを従</b>にするのがいちばん壊れません。</p>
+    </div>
+  </div>
+
+  <div class="parent">
+    <div class="ph">この仕組みの弱点と、手当て</div>
+    <div class="pb">
+      <p>もともと自分からやっていたことに報酬をつけると、報酬がないとやらなくなる ── これは研究上知られている現象です。方式は変えずに、手当てを3つ入れてあります。</p>
+      <table class="plain">
+        <thead><tr><th style="width:38%">リスク</th><th>手当て</th></tr></thead>
+        <tbody>
+          <tr><td><b>「マスが増えないならやらない」になる</b></td><td>リストに<b>載せない</b>親切を意図的に残す。妹を助けた、ドアを開けてくれた、といった場面は塗らずに「ありがとう」で返す。リストにあるのは家事だけ、と線を引く</td></tr>
+          <tr><td><b>マス稼ぎが目的化する</b></td><td>1日10マスの上限あり。配点も、当番系1マス・まとまった仕事3マスと差をつけてある</td></tr>
+          <tr><td><b>仕組みが続かない</b></td><td>2026年12月に一度見直す。続かない場合は単価を上げるのではなく、<b>やることの数を減らす</b>のが先</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="parentonly" id="printSection">
+  <h2><span class="num">05 — Print</span>いんさつして かべに はる</h2>
+  <p class="lede">A4で2枚です。<b>1枚め＝やくそくの説明</b>、<b>2枚め＝ぬりつぶしシート</b>（上段が侃生、下段が羽栞）。シートは1枚で1か月使えます。</p>
+  <div class="actions noprint">
+    <label class="lede" style="margin:0;font-size:13px">シートの長さ
+      <select id="span" aria-label="印刷するシートの長さ">
+        <option value="month" selected>1か月（31日ぶん）</option>
+        <option value="week">1週間（7日ぶん・大きめ）</option>
+      </select>
+    </label>
+    <button type="button" id="printBtn">いんさつする（A4 2まい）</button>
+  </div>
+  <div class="printonly" id="printArea"></div>
+</section>
+
+<footer class="parentonly">
+  ③執事プロジェクト ／ 子どもの学習<br>
+  出典：American Academy of Pediatrics「Age-Appropriate Chores for Children」／ CFPB「Money as You Grow」（確認日 2026-09-21）
+</footer>
+</div>
+
+<script>
+(function(){
+  var GROUPS = [
+    {t:"1マス ／ まいにちの とうばん", jobs:[
+      {id:"gohan", n:'ごはんの したく', b:1},
+      {id:"kutsu", n:'くつを ならべる', b:1},
+      {id:"table", n:'<ruby>食<rt>た</rt></ruby>べおわった あとの テーブルを ふく', b:1},
+      {id:"plant", n:'<ruby>植物<rt>しょくぶつ</rt></ruby>に <ruby>水<rt>みず</rt></ruby>を やる', b:1}
+    ]},
+    {t:"2マス ／ ときどきの しごと", jobs:[
+      {id:"fold",      n:'<ruby>洗濯物<rt>せんたくもの</rt></ruby>を たたむ', b:2},
+      {id:"gomi",      n:'ゴミを うらの ゴミばこに すてに いく', b:2},
+      {id:"groceries", n:'かいものの <ruby>荷物<rt>にもつ</rt></ruby>を しまう', b:2},
+      {id:"vacuum1",   n:'<ruby>掃除機<rt>そうじき</rt></ruby>を かける（1へや）', b:2},
+      {id:"futon",     n:'ふとんを じゅんびする', b:2},
+      {id:"roomba",    n:'ルンバの ゴミを すてる', b:2}
+    ]},
+    {t:"3マス ／ しっかりの しごと", jobs:[
+      {id:"vacuum2", n:'<ruby>掃除機<rt>そうじき</rt></ruby>を かける（2へや いじょう）', b:3},
+      {id:"cook",    n:'<ruby>夕<rt>ゆう</rt></ruby>ごはんの おてつだい', b:3},
+      {id:"genkan",  n:'<ruby>玄関<rt>げんかん</rt></ruby>の そうじ', b:3},
+      {id:"teach",   n:'<ruby>兄妹<rt>きょうだい</rt></ruby>に べんきょうを おしえる', b:3},
+      {id:"toilet",  n:'トイレそうじを する', b:3},
+      {id:"mado",    n:'<ruby>窓<rt>まど</rt></ruby>そうじを する', b:3},
+      {id:"sensha",  n:'<ruby>洗車<rt>せんしゃ</rt></ruby>を てつだう', b:3}
+    ]},
+    {t:"2マス ／ ボーナス", jobs:[
+      {id:"self", n:'いわれる <ruby>前<rt>まえ</rt></ruby>に じぶんで みつけて やる', b:2}
+    ]}
+  ];
+  var PLAIN = {
+    gohan:"ごはんの したく", kutsu:"くつを ならべる",
+    table:"食（た）べおわった あとの テーブルを ふく", plant:"植物（しょくぶつ）に 水（みず）を やる",
+    fold:"洗濯物（せんたくもの）を たたむ", gomi:"ゴミを うらの ゴミばこに すてに いく",
+    groceries:"かいものの 荷物（にもつ）を しまう", vacuum1:"掃除機（そうじき）を かける（1へや）",
+    futon:"ふとんを じゅんびする", roomba:"ルンバの ゴミを すてる",
+    vacuum2:"掃除機（そうじき）を かける（2へや いじょう）", cook:"夕（ゆう）ごはんの おてつだい",
+    genkan:"玄関（げんかん）の そうじ", teach:"兄妹（きょうだい）に べんきょうを おしえる",
+    toilet:"トイレそうじを する", mado:"窓（まど）そうじを する", sensha:"洗車（せんしゃ）を てつだう",
+    self:"いわれる 前（まえ）に じぶんで みつけて やる"
+  };
+  var CHILD = {kansei:{n:"侃生", r:"かいお"}, hanon:{n:"羽栞", r:"うか"}};
+  var WD = ["にち","げつ","か","すい","もく","きん","ど"];
+  var K = "ots.v1.";
+
+  /* ---- device-local storage (works with no sign-in) ---- */
+  var LS = {
+    get:function(k){ try{ var v=localStorage.getItem(K+k); return v?JSON.parse(v):null; }catch(e){ return null; } },
+    set:function(k,v){ try{ localStorage.setItem(K+k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+  };
+  var localOK = (function(){ try{ localStorage.setItem(K+"t","1"); localStorage.removeItem(K+"t"); return true; }catch(e){ return false; } })();
+
+  var db=null, writing={}, cfgWriting=false, subs={};
+  var cfg = {rate:0.10, cap:10, goal:100, updatedAt:""};
+  var current = "kansei";
+  var mode = "kid";
+  var month = new Date();
+  var store = {kansei:{}, hanon:{}};
+
+  function mkey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
+  function dkey(){ return String(new Date().getDate()).padStart(2,"0"); }
+  function isThisMonth(){ return mkey(month)===mkey(new Date()); }
+  function dim(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate(); }
+  function skey(child){ return "sheet."+child+"."+mkey(month); }
+
+  function bucket(child){
+    var m = mkey(month);
+    if(!store[child][m]){
+      var l = LS.get("sheet."+child+"."+m);
+      store[child][m] = (l && l.days) ? {days:l.days, updatedAt:l.updatedAt||""} : {days:{}, updatedAt:""};
+    }
+    return store[child][m];
+  }
+  function total(child){
+    var d = bucket(child).days, t=0;
+    Object.keys(d).forEach(function(k){ t += d[k]||0; });
+    return t;
+  }
+
+  function buildJobs(){
+    var el = document.getElementById("jobs"), h = "";
+    GROUPS.forEach(function(g){
+      h += '<div class="jgroup">'+g.t+'</div>';
+      g.jobs.forEach(function(j){
+        var bx=""; for(var i=0;i<j.b;i++) bx += "<i></i>";
+        h += '<div class="jrow"><span class="nm">'+j.n+'</span>'
+           + '<span class="bx" aria-label="'+j.b+'マス">'+bx+'</span>'
+           + '<button type="button" data-b="'+j.b+'">ぬる +'+j.b+'</button></div>';
+      });
+    });
+    el.innerHTML = h;
+  }
+
+  function buildDays(){
+    var el = document.getElementById("days"), n = dim(month), h="";
+    for(var i=1;i<=n;i++){
+      var dt = new Date(month.getFullYear(), month.getMonth(), i), w = dt.getDay(), dd = String(i).padStart(2,"0");
+      var cells="";
+      for(var c=1;c<=cfg.cap;c++){
+        cells += '<button type="button" class="sq" data-d="'+dd+'" data-c="'+c+'" aria-label="'+i+'日 '+c+'マスめ"></button>';
+      }
+      h += '<div class="drow'+((w===0||w===6)?' wk':'')+'" data-day="'+dd+'">'
+         + '<span class="dl"><b>'+i+'</b> '+WD[w]+'</span>'
+         + '<span class="cells" style="grid-template-columns:repeat('+cfg.cap+',1fr)">'+cells+'</span>'
+         + '<span class="dt" data-t="'+dd+'">—</span></div>';
+    }
+    el.innerHTML = h;
+  }
+
+  function render(){
+    document.body.classList.toggle("ho-mode", current==="hanon");
+    document.body.classList.toggle("kid", mode==="kid");
+    document.getElementById("mode-kid").setAttribute("aria-pressed", mode==="kid"?"true":"false");
+    document.getElementById("mode-parent").setAttribute("aria-pressed", mode==="parent"?"true":"false");
+    document.getElementById("tab-kansei").setAttribute("aria-pressed", current==="kansei"?"true":"false");
+    document.getElementById("tab-hanon").setAttribute("aria-pressed", current==="hanon"?"true":"false");
+    document.getElementById("mlabel").textContent = month.getFullYear()+"年"+(month.getMonth()+1)+"月";
+    document.getElementById("nextM").disabled = isThisMonth();
+
+    var days = bucket(current).days;
+    document.querySelectorAll(".sq").forEach(function(s){
+      s.classList.toggle("on", parseInt(s.dataset.c,10) <= (days[s.dataset.d]||0));
+    });
+    document.querySelectorAll("[data-t]").forEach(function(t){
+      var v = days[t.dataset.t]||0;
+      t.textContent = v>0 ? v : "—";
+      t.classList.toggle("has", v>0);
+    });
+    document.querySelectorAll(".drow").forEach(function(r){
+      r.classList.toggle("today", isThisMonth() && r.dataset.day===dkey());
+    });
+
+    var tot = total(current), td = isThisMonth() ? (days[dkey()]||0) : 0;
+    document.getElementById("total").innerHTML = tot+'<em> / '+cfg.goal+' マス</em>';
+    document.getElementById("today").innerHTML = td+'<em> / '+cfg.cap+'</em>';
+    document.getElementById("todayWrap").classList.toggle("cap", td>=cfg.cap);
+    document.getElementById("money").textContent = "$"+(tot*cfg.rate).toFixed(2);
+
+    var g = document.getElementById("goal");
+    if(tot>=cfg.goal){
+      g.textContent = current==="kansei"
+        ? "もくひょう たっせい！ いま "+tot+"マスです。つぎの 第1日よう日に せいさんします。"
+        : "もくひょう たっせい！ ごほうびの「たいけん」を えらべます。";
+    }else{
+      g.textContent = "もくひょうまで あと "+(cfg.goal-tot)+" マス。"+(td>=cfg.cap && isThisMonth() ? "　きょうの "+cfg.cap+"マスは ぬりきりました。つづきは あした。" : "");
+    }
+  }
+
+  function setDay(child, d, n){
+    var b = bucket(child);
+    n = Math.max(0, Math.min(cfg.cap, n));
+    if((b.days[d]||0)===n) return;
+    if(n===0) delete b.days[d]; else b.days[d]=n;
+    b.updatedAt = new Date().toISOString();
+    render(); save(child);
+  }
+
+  function save(child){
+    var b = bucket(child);
+    var okLocal = LS.set(skey(child), {days:b.days, updatedAt:b.updatedAt});
+    setStatus(okLocal ? "この iPad に ほぞんしました。" : "このブラウザでは きろくを のこせません。");
+    if(!db) return;
+    var key = child+"_"+mkey(month);
+    if(writing[key]){ writing[key]="again"; return; }
+    writing[key]=true;
+    db.doc("sheet/"+key).set({child:child, month:mkey(month), days:b.days, updatedAt:b.updatedAt})
+      .then(function(){
+        var again = writing[key]==="again"; writing[key]=false; if(again) save(child);
+        setStatus("ほぞんしました（アカウントにも どうき）");
+      })
+      .catch(function(){ writing[key]=false; });
+  }
+
+  function saveCfg(){
+    cfg.updatedAt = new Date().toISOString();
+    LS.set("cfg", cfg);
+    if(!db||cfgWriting) return; cfgWriting=true;
+    db.doc("config/points").set({rate:cfg.rate, cap:cfg.cap, goal:cfg.goal, updatedAt:cfg.updatedAt})
+      .then(function(){cfgWriting=false;}).catch(function(){cfgWriting=false;});
+  }
+  function setStatus(t){ document.getElementById("status").textContent = t; }
+  function setHint(){
+    document.getElementById("savehint").textContent =
+      !localOK ? "きろくは のこりません" : (db ? "この端末に保存＋アカウントに同期" : "この端末のなかに ほぞん");
+  }
+
+  function subscribe(){
+    if(!db) return;
+    var m = mkey(month);
+    ["kansei","hanon"].forEach(function(child){
+      var key = child+"_"+m;
+      if(subs[key]) return;
+      subs[key] = db.doc("sheet/"+key).onSnapshot(function(snap){
+        if(!snap.exists) return;
+        var d = snap.data()||{}, b = bucket(child);
+        var remote = d.updatedAt||"", locl = b.updatedAt||"";
+        if(remote > locl){
+          store[child][m] = {days:Object.assign({}, d.days||{}), updatedAt:remote};
+          LS.set("sheet."+child+"."+m, store[child][m]);
+          render();
+        }else if(locl && locl > remote){
+          save(child);
+        }
+      }, function(){});
+    });
+  }
+
+  document.addEventListener("click", function(ev){
+    var jb = ev.target.closest(".jrow button");
+    if(jb){
+      if(!isThisMonth()){ setStatus("こんげつの シートに きりかえてから ぬってください。"); return; }
+      var d = dkey();
+      setDay(current, d, (bucket(current).days[d]||0) + parseInt(jb.dataset.b,10));
+      return;
+    }
+    var sq = ev.target.closest(".sq");
+    if(sq){
+      var day = sq.dataset.d, c = parseInt(sq.dataset.c,10);
+      setDay(current, day, (c===(bucket(current).days[day]||0)) ? c-1 : c);
+      return;
+    }
+    var id = ev.target.id;
+    if(id==="mode-kid" || id==="mode-parent"){
+      mode = (id==="mode-kid") ? "kid" : "parent";
+      LS.set("mode", mode); render(); window.scrollTo(0,0); return;
+    }
+    if(id==="tab-kansei"){ current="kansei"; LS.set("who", current); render(); }
+    if(id==="tab-hanon"){ current="hanon"; LS.set("who", current); render(); }
+    if(id==="prevM"){ month = new Date(month.getFullYear(), month.getMonth()-1, 1); buildDays(); render(); subscribe(); }
+    if(id==="nextM" && !isThisMonth()){ month = new Date(month.getFullYear(), month.getMonth()+1, 1); buildDays(); render(); subscribe(); }
+    if(id==="printBtn"){ buildPrint(); window.print(); }
+  });
+
+  [["rate","rate"],["cap","cap"],["goalN","goal"]].forEach(function(p){
+    document.getElementById(p[0]).addEventListener("change", function(e){
+      var v = parseFloat(e.target.value);
+      if(isNaN(v)||v<=0){ e.target.value = cfg[p[1]]; return; }
+      cfg[p[1]] = (p[1]==="rate") ? v : Math.round(v);
+      e.target.value = cfg[p[1]];
+      if(p[1]==="cap") buildDays();
+      render(); saveCfg();
+    });
+  });
+
+  function buildPrint(){
+    var span = document.getElementById("span").value, cap = cfg.cap;
+    var RULES = [
+      "おてつだいを したら、きょうの ぎょうの マスを ぬる。<br>なにを したか、いえること。",
+      "1にちに ぬれるのは "+cap+"マスまで。<br>1ぎょう ぬりきったら、その日は おしまい。",
+      "1かげつで "+cfg.goal+"マス こえたら、もくひょう たっせい。",
+      "もらったら、はんぶんは ためる、はんぶんは つかう。"
+    ];
+    var rulesHtml = "";
+    RULES.forEach(function(r,i){ rulesHtml += '<div class="prule-card"><span class="pn">'+(i+1)+'</span><span class="pt">'+r+'</span></div>'; });
+
+    function jobTable(groups){
+      var h = '<table class="pjobs"><thead><tr><th>できること</th><th class="c">ぬれる かず</th></tr></thead><tbody>';
+      groups.forEach(function(g){
+        var parts = g.t.split(" ／ ");
+        h += '<tr><th colspan="2">'+parts[1]+'（'+parts[0]+'）</th></tr>';
+        g.jobs.forEach(function(j){ h += '<tr><td>'+PLAIN[j.id]+'</td><td class="c">'+j.b+' マス</td></tr>'; });
+      });
+      return h+'</tbody></table>';
+    }
+
+    var page1 = '<div class="ppage">'
+      + '<p class="ptitle">おてつだいの やくそく</p>'
+      + '<p class="psub">おてつだいを したら、シートの マスを ぬります。やくそくと ごほうびは、きょうだい おなじです。</p>'
+      + '<div class="prules">'+rulesHtml+'</div>'
+      + '<p class="pjobs-head">できること と、ぬれる マスの かず</p>'
+      + '<div class="pjcols">'+jobTable(GROUPS.slice(0,2))+jobTable(GROUPS.slice(2))+'</div>'
+      + '<div class="pend"><b>ぜんぶ ぬれたら</b><br>'
+      +   'かいお：つぎの 第1にちようびに、いっしょに マスを かぞえます。<br>'
+      +   'うか：ごほうびの「たいけん」を 1つ えらべます（こうえんを きめる／パンケーキの かかり／えほんを 1さつ えらぶ など）。<br>'
+      +   'もらった おかねは、はんぶんは「ためる ふくろ」、はんぶんは「つかう ふくろ」へ。</div></div>';
+
+    var cells=""; for(var c=0;c<cap;c++) cells += "<div></div>";
+    var cellBlock = '<div class="pcells" style="grid-template-columns:repeat('+cap+',1fr)">'+cells+'</div>';
+    function rows(from,to,weekMode){
+      var h='<table class="ptab"><thead><tr><th>ひ</th><th>ぬったマス</th><th class="r">けい</th></tr></thead><tbody>';
+      for(var i=from;i<=to;i++){
+        h += '<tr><td class="d">'+(weekMode ? "＿＿／＿＿（　）" : i+"日")+'</td><td>'+cellBlock+'</td><td class="t"></td></tr>';
+      }
+      return h+'</tbody></table>';
+    }
+    function grid(){
+      if(span==="week") return '<div class="pcols week" style="grid-template-columns:1fr">'+rows(1,7,true)+'</div>';
+      return '<div class="pcols" style="grid-template-columns:1fr 1fr">'+rows(1,16,false)+rows(17,31,false)+'</div>';
+    }
+
+    var sheets = "";
+    if (span === "week") {
+      /* 1週間版は 2人ぶんで 1まい */
+      var halves = "";
+      ["kansei","hanon"].forEach(function(ch){
+        halves += '<div class="phalf">'
+          + '<div class="phead"><span class="pname">'+CHILD[ch].r+'</span>'
+          +   '<span class="pmeta">しゅう：<span></span> 〜 <span></span></span></div>'
+          + grid()
+          + '<div class="ptot">ごうけい <span></span> マス'+(ch==="kansei" ? '　　きんがく <span></span>' : '　　ごほうび <span></span>')+'</div>'
+          + '</div>';
+      });
+      sheets = '<div class="ppage">'
+        + '<p class="ptitle">ぬりつぶし シート</p>'
+        + '<p class="psub">1日に 1ぎょうずつ。1ぎょうは '+cap+'マス＝その日の じょうげんです。うえが かいお、したが うか。</p>'
+        + halves
+        + '<p class="pnote">やくそくと「できること」は、もう1まいの「おてつだいの やくそく」を 見てください。</p></div>';
+    } else {
+      /* 1か月版は 1人 1まい */
+      ["kansei","hanon"].forEach(function(ch){
+        sheets += '<div class="ppage">'
+          + '<p class="ptitle">'+CHILD[ch].r+'の ぬりつぶしシート</p>'
+          + '<p class="psub">1日に 1ぎょうずつ。1ぎょうは '+cap+'マス＝その日の じょうげんです。おてつだいを したら、その日の マスを ぬります。</p>'
+          + '<div class="phead"><span class="pname" style="font-size:11pt">&nbsp;</span><span class="pmeta">つき：<span></span></span></div>'
+          + grid()
+          + '<div class="ptot">ごうけい <span></span> マス'+(ch==="kansei" ? '　　きんがく <span></span>' : '　　ごほうび <span></span>')+'</div>'
+          + '<p class="pnote">やくそくと「できること」は、もう1まいの「おてつだいの やくそく」を 見てください。</p>'
+          + '</div>';
+      });
+    }
+
+    document.getElementById("printArea").innerHTML = page1 + sheets;
+  }
+
+  /* ---- boot from device storage first, so the page is usable with no sign-in ---- */
+  var lc = LS.get("cfg");
+  if(lc){
+    if(typeof lc.rate==="number") cfg.rate=lc.rate;
+    if(typeof lc.cap==="number") cfg.cap=lc.cap;
+    if(typeof lc.goal==="number") cfg.goal=lc.goal;
+    cfg.updatedAt = lc.updatedAt||"";
+    document.getElementById("rate").value = cfg.rate;
+    document.getElementById("cap").value = cfg.cap;
+    document.getElementById("goalN").value = cfg.goal;
+  }
+  var lm = LS.get("mode"); if(lm==="kid"||lm==="parent") mode = lm;
+  var lw = LS.get("who"); if(lw==="kansei"||lw==="hanon") current = lw;
+
+  buildJobs();
+  buildDays();
+  render();
+  buildPrint();
+  setHint();
+  setStatus(localOK ? "この端末のなかに ほぞんされます。" : "このブラウザでは きろくを のこせません（プライベートモードかも）。");
+
+  if(window.claude && window.claude.use){
+    window.claude.use("db").then(function(d){
+      if(!d) return;
+      db = d; setHint();
+      d.doc("config/points").onSnapshot(function(s){
+        if(!s.exists) return;
+        var c = s.data()||{};
+        if((c.updatedAt||"") <= (cfg.updatedAt||"")) return;
+        if(typeof c.rate==="number") cfg.rate=c.rate;
+        if(typeof c.cap==="number") cfg.cap=c.cap;
+        if(typeof c.goal==="number") cfg.goal=c.goal;
+        cfg.updatedAt = c.updatedAt||"";
+        LS.set("cfg", cfg);
+        document.getElementById("rate").value = cfg.rate;
+        document.getElementById("cap").value = cfg.cap;
+        document.getElementById("goalN").value = cfg.goal;
+        buildDays(); render(); buildPrint();
+      }, function(){});
+      subscribe();
+    });
+  }
+})();
+</script>
+
+</body>
+</html>

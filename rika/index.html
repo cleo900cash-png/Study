@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="りかのじかん">
+<style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>りかのじかん</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ground:#EDF3F9;--surface:#FFFFFF;--surface-2:#F5F8FB;
+    --ink:#1F2933;--ink-2:#4A5A68;--ink-3:#8797A5;
+    --line:#DCE6EF;--line-2:#C3D2DF;
+    --accent:#2C6FB5;--accent-soft:#E7F0F9;
+    --disp:"M PLUS Rounded 1c",-apple-system,"Hiragino Maru Gothic ProN",sans-serif;
+    --body:"Zen Maru Gothic",-apple-system,"Hiragino Maru Gothic ProN",sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#12171D;--surface:#1B2229;--surface-2:#222A33;
+    --ink:#EAF0F5;--ink-2:#B3C1CD;--ink-3:#7C8B99;
+    --line:#2C353F;--line-2:#3C4854;
+    --accent:#6BA5DC;--accent-soft:#182533;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#12171D;--surface:#1B2229;--surface-2:#222A33;
+    --ink:#EAF0F5;--ink-2:#B3C1CD;--ink-3:#7C8B99;
+    --line:#2C353F;--line-2:#3C4854;
+    --accent:#6BA5DC;--accent-soft:#182533;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--body);margin:0;
+       padding-inline:18px;padding-block:0 56px;line-height:1.9;-webkit-text-size-adjust:100%}
+  ruby{ruby-position:over}
+  rt{font-size:.5em;font-weight:400;color:var(--ink-3);line-height:1}
+  .wrap{max-width:900px;margin:0 auto}
+
+  header{padding-block:44px 22px;border-bottom:3px solid var(--accent)}
+  .eyebrow{font-family:var(--disp);font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--accent);margin:0 0 12px}
+  h1{font-family:var(--disp);font-weight:800;font-size:clamp(30px,7vw,48px);line-height:1.3;margin:0 0 14px}
+  .lead{font-size:clamp(14.5px,2.6vw,17px);color:var(--ink-2);margin:0;max-width:52ch;line-height:2}
+
+  h2{font-family:var(--disp);font-weight:800;font-size:19px;margin:38px 0 14px;color:var(--ink)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+  a.card{
+    display:flex;flex-direction:column;gap:7px;text-decoration:none;color:inherit;
+    background:var(--surface);border:2px solid var(--line);border-radius:18px;
+    padding:17px 18px 19px;min-height:128px;
+    box-shadow:0 2px 8px rgba(31,41,51,.05);
+  }
+  a.card:hover,a.card:focus-visible{border-color:var(--accent);outline:none}
+  a.card .m{font-family:var(--disp);font-weight:800;font-size:12.5px;letter-spacing:.06em;
+            color:var(--accent);background:var(--accent-soft);align-self:flex-start;
+            padding:4px 11px;border-radius:999px}
+  a.card .t{font-family:var(--disp);font-weight:800;font-size:19px;line-height:1.45}
+  a.card .d{font-size:12.5px;color:var(--ink-3);line-height:1.8}
+  a.card .go{font-family:var(--disp);font-weight:800;font-size:13px;color:var(--accent);margin-top:auto}
+
+  .howto{background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:20px 20px 22px;margin-top:14px}
+  .howto ol{margin:0;padding-left:20px;font-size:14px;color:var(--ink-2);line-height:2.1}
+  .howto p{margin:12px 0 0;font-size:13px;color:var(--ink-3);line-height:1.9}
+  .howto b{color:var(--ink)}
+  footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);line-height:1.9}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">KAIO &amp; UKA — SCIENCE OF THE MONTH</p>
+  <h1>りかの じかん</h1>
+  <p class="lead">つきに 1つ、テーマを えらんで しらべます。<br>
+  月の はじめに スライドを 見て、その月の 土よう日に じっけん。<br>
+  ぜんぶで 12か月ぶん あります。</p>
+</header>
+
+<h2>12か月の テーマ</h2>
+<div class="grid">
+  <a class="card" href="2026-10-jishaku.html">
+    <span class="m">10がつ</span><span class="t">じしゃくの ひみつ</span>
+    <span class="d">なにに つく？／N極とS極／力は 通りぬける／クリップを じしゃくに</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2026-11-denki.html">
+    <span class="m">11がつ</span><span class="t">でんきの 通り道</span>
+    <span class="d">まめでんきゅうを つける／かいろ／通すもの しらべ／スイッチづくり</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2026-12-hikari.html">
+    <span class="m">12がつ</span><span class="t">ひかりの せいしつ</span>
+    <span class="d">かがみで はね返す／3まいで あつめる／虫めがね</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2027-01-kage.html">
+    <span class="m">1がつ</span><span class="t">太陽と かげ</span>
+    <span class="d">かげの 向き／1日の 動き／日なたと 日かげの 温度</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2027-02-oto.html">
+    <span class="m">2がつ</span><span class="t">音の せいしつ</span>
+    <span class="d">わゴムの ふるえ／お米を とばす／糸でんわ</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2027-03-omosa.html">
+    <span class="m">3がつ</span><span class="t">物の 重さ</span>
+    <span class="d">形を かえる／同じ 大きさで くらべる／てんびんづくり</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2027-04-kaze.html">
+    <span class="m">4がつ</span><span class="t">風と ゴムの はたらき</span>
+    <span class="d">風で 車を 動かす／ゴムの のばし方と きょり／グラフ</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2027-05-tane.html">
+    <span class="m">5がつ</span><span class="t">たねを まこう</span>
+    <span class="d">たねの 中を 見る／まく／まいしゅう 高さを はかる</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2027-06-chou.html">
+    <span class="m">6がつ</span><span class="t">チョウの かんさつ</span>
+    <span class="d">たまご→よう虫→さなぎ→せい虫／だっ皮／羽化</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2027-07-konchu.html">
+    <span class="m">7がつ</span><span class="t">こん虫の かんさつ</span>
+    <span class="d">頭・むね・はら／あし 6本／なかま分け</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2027-08-kenkyu.html">
+    <span class="m">8がつ</span><span class="t">じゆうけんきゅう</span>
+    <span class="d">テーマの えらび方／公正な テスト／まとめ方／はっぴょう</span><span class="go">ひらく →</span></a>
+  <a class="card" href="2027-09-matome.html">
+    <span class="m">9がつ</span><span class="t">生き物の くらしと 1年</span>
+    <span class="d">花と 実／たねに もどる／12か月の ふりかえり</span><span class="go">ひらく →</span></a>
+</div>
+
+<h2>つかいかた</h2>
+<div class="howto">
+  <ol>
+    <li>月の はじめに、その月の カードを タップして スライドを 見る</li>
+    <li>矢じるしか 指で スワイプして めくる</li>
+    <li>「しつもん」の スライドでは、こたえを 言ってから えらぶ</li>
+    <li>その月の 土よう日に、じっけんを やる</li>
+    <li>さいごに かんさつカードを 1まい かく</li>
+  </ol>
+  <p><b>iPadへの 入れ方：</b>Safariでこの<b>もくじ</b>を開き、「共有 → ホーム画面に追加」で、アプリのように1タップで開けます。</p>
+  <p><b>おうちの人へ：</b>各スライドの最後の1枚に、用意するもの・30分の配分・声かけのコツ・安全上の注意をまとめてあります。
+  実験の前に、そこだけ先に読んでください。とくに12月（虫めがね）、11月（電池）、4月（輪ゴム）、6月・7月（生き物）は
+  安全の注意があります。</p>
+</div>
+
+<footer>
+  ③執事プロジェクト ／ 子どもの学習 ／ 理科<br>
+  小学校3年生の理科（年90時間）の全単元を12か月に割ったもの。2026年10月〜2027年9月。
+</footer>
+</div>
+
+</body>
+</html>

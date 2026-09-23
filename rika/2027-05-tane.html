@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>たねを まこう</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Zen+Maru+Gothic:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ground:#EDF3F9;--surface:#FFFFFF;--surface-2:#F5F8FB;
+    --ink:#1F2933;--ink-2:#4A5A68;--ink-3:#8797A5;
+    --line:#DCE6EF;--line-2:#C3D2DF;
+    --n:#4E8A45;--n-soft:#E9F1E7;
+    --s:#8A6A3E;--s-soft:#F3EDE4;
+    --go:#F0A81E;--go-soft:#FDF2DC;
+    --ok:#2F9478;--ok-soft:#E4F2EE;
+    --disp:"M PLUS Rounded 1c",-apple-system,"Hiragino Maru Gothic ProN",sans-serif;
+    --body:"Zen Maru Gothic",-apple-system,"Hiragino Maru Gothic ProN",sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#12171D;--surface:#1B2229;--surface-2:#222A33;
+    --ink:#EAF0F5;--ink-2:#B3C1CD;--ink-3:#7C8B99;
+    --line:#2C353F;--line-2:#3C4854;
+    --n:#86B87E;--n-soft:#1A2418;
+    --s:#C0A175;--s-soft:#2A2318;
+    --go:#F2BE55;--go-soft:#2E2617;
+    --ok:#6FC0A8;--ok-soft:#18271F;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#12171D;--surface:#1B2229;--surface-2:#222A33;
+    --ink:#EAF0F5;--ink-2:#B3C1CD;--ink-3:#7C8B99;
+    --line:#2C353F;--line-2:#3C4854;
+    --n:#86B87E;--n-soft:#1A2418;
+    --s:#C0A175;--s-soft:#2A2318;
+    --go:#F2BE55;--go-soft:#2E2617;
+    --ok:#6FC0A8;--ok-soft:#18271F;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:var(--ground);color:var(--ink);font-family:var(--body);
+    margin:0;padding-inline:16px;padding-block:0 0;line-height:1.9;
+    -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;
+  }
+  ruby{ruby-position:over}
+  rt{font-size:.5em;font-weight:400;color:var(--ink-3);letter-spacing:0;line-height:1}
+  button{font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
+  button:focus-visible{outline:3px solid var(--s);outline-offset:3px}
+
+  .deck{max-width:840px;margin:0 auto;display:flex;flex-direction:column;min-height:100%}
+
+  /* ---- slide ---- */
+  .slide{
+    background:var(--surface);border:1px solid var(--line);border-radius:22px;
+    padding:clamp(22px,4vw,40px);margin-block:18px;
+    box-shadow:0 3px 14px rgba(31,41,51,.05);
+    flex:1;display:flex;flex-direction:column;justify-content:center;gap:16px;
+    min-height:min(560px,70vh);
+  }
+  .kicker{
+    font-family:var(--disp);font-size:12px;font-weight:700;letter-spacing:.12em;
+    display:inline-flex;align-items:center;gap:7px;align-self:flex-start;
+    padding:5px 13px;border-radius:999px;
+  }
+  .kicker.q{background:var(--go-soft);color:var(--go)}
+  .kicker.do{background:var(--s-soft);color:var(--s)}
+  .kicker.ans{background:var(--ok-soft);color:var(--ok)}
+  .kicker.big{background:var(--n-soft);color:var(--n)}
+  .kicker.pa{background:var(--surface-2);color:var(--ink-3)}
+
+  h1{font-family:var(--disp);font-weight:800;font-size:clamp(30px,7vw,54px);line-height:1.35;margin:0;letter-spacing:.01em;text-wrap:balance}
+  h2{font-family:var(--disp);font-weight:800;font-size:clamp(23px,4.6vw,36px);line-height:1.45;margin:0;text-wrap:balance}
+  p.lead{font-size:clamp(15px,2.6vw,19px);color:var(--ink-2);margin:0;line-height:2.05}
+  p.small{font-size:13.5px;color:var(--ink-3);margin:0;line-height:1.9}
+  .big-answer{font-family:var(--disp);font-weight:800;font-size:clamp(34px,8vw,64px);color:var(--ok);line-height:1.3;margin:0}
+
+  /* choice buttons */
+  .choices{display:flex;flex-direction:column;gap:11px;margin-top:4px}
+  .choice{
+    display:flex;align-items:center;gap:14px;text-align:left;width:100%;
+    background:var(--surface-2);border:2.5px solid var(--line);border-radius:16px;
+    padding:15px 18px;font-size:clamp(15px,2.6vw,19px);color:var(--ink);line-height:1.7;
+    font-family:var(--body);min-height:60px;
+  }
+  .choice .mark{
+    width:32px;height:32px;border-radius:50%;background:var(--surface);border:2.5px solid var(--line-2);
+    flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    font-family:var(--disp);font-weight:800;font-size:15px;color:var(--ink-3);
+  }
+  .choice[aria-pressed="true"]{border-color:var(--go);background:var(--go-soft)}
+  .choice[aria-pressed="true"] .mark{background:var(--go);border-color:var(--go);color:#fff}
+
+  /* steps */
+  ol.steps{margin:0;padding:0;list-style:none;counter-reset:st;display:flex;flex-direction:column;gap:12px}
+  ol.steps li{counter-increment:st;display:flex;gap:14px;align-items:flex-start;font-size:clamp(14.5px,2.5vw,18px);line-height:1.85}
+  ol.steps li::before{
+    content:counter(st);flex:0 0 auto;width:30px;height:30px;border-radius:50%;
+    background:var(--s);color:#fff;font-family:var(--disp);font-weight:800;font-size:15px;
+    display:flex;align-items:center;justify-content:center;margin-top:3px;
+  }
+  .kit{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+  .kit span{background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:13.5px;color:var(--ink-2)}
+
+  /* poles diagram */
+  .poles{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+  .pair{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .bar{display:flex;border-radius:7px;overflow:hidden;box-shadow:0 2px 6px rgba(31,41,51,.12)}
+  .bar b{font-family:var(--disp);font-weight:800;font-size:17px;color:#fff;padding:11px 20px;letter-spacing:.04em}
+  .bar b.n{background:var(--n)}
+  .bar b.s{background:var(--s)}
+  .arrow{font-family:var(--disp);font-weight:800;font-size:20px;color:var(--ink-3)}
+  .pair .res{font-family:var(--disp);font-weight:800;font-size:clamp(15px,2.6vw,19px)}
+  .pair .res.pull{color:var(--ok)}
+  .pair .res.push{color:var(--n)}
+
+  /* reveal */
+  .reveal{
+    background:var(--go-soft);border:2.5px dashed var(--go);border-radius:18px;
+    padding:20px 22px;text-align:center;width:100%;
+    font-family:var(--disp);font-weight:800;font-size:clamp(16px,3vw,22px);color:var(--go);
+  }
+  .reveal[data-open="1"]{background:var(--ok-soft);border-style:solid;border-color:var(--ok);color:var(--ok);text-align:left}
+  .reveal .body{display:block;font-family:var(--body);font-weight:400;font-size:clamp(14.5px,2.5vw,18px);color:var(--ink-2);line-height:1.95;margin-top:10px}
+
+  /* cards */
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:4px}
+  .fact{background:var(--surface-2);border-radius:16px;padding:16px 17px;display:flex;flex-direction:column;gap:6px}
+  .fact .ttl{font-family:var(--disp);font-weight:800;font-size:16px;color:var(--ink)}
+  .fact .txt{font-size:13.5px;color:var(--ink-2);line-height:1.85}
+
+  /* parent slide */
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:4px}
+  .pbox{background:var(--surface-2);border-radius:14px;padding:15px 16px}
+  .pbox h3{font-family:var(--disp);font-size:14px;font-weight:800;margin:0 0 7px;color:var(--ink)}
+  .pbox ul{margin:0;padding-left:17px;font-size:13px;color:var(--ink-2);line-height:1.85}
+  .warn{background:var(--n-soft);border-left:4px solid var(--n);border-radius:10px;padding:14px 16px;font-size:13.5px;color:var(--ink-2);line-height:1.9;margin-top:4px}
+  .warn b{color:var(--n)}
+
+  /* ---- nav ---- */
+  .nav{
+    position:sticky;bottom:0;background:var(--ground);
+    padding-block:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    display:flex;align-items:center;gap:12px;justify-content:space-between;
+  }
+  .nav button{
+    font-family:var(--disp);font-weight:800;font-size:16px;
+    background:var(--surface);color:var(--ink);border:2px solid var(--line-2);
+    border-radius:14px;min-height:54px;padding:0 22px;
+  }
+  .nav button:disabled{opacity:.35}
+  .nav button.next{background:var(--s);border-color:var(--s);color:#fff}
+  .dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;flex:1}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--line-2);border:0;padding:0;min-height:0}
+  .dot[aria-current="true"]{background:var(--s);transform:scale(1.4)}
+  .counter{font-family:var(--disp);font-weight:700;font-size:13px;color:var(--ink-3);min-width:46px;text-align:center}
+  @media (max-width:620px){.dots{display:none}.counter{flex:1;font-size:15px}}
+  .tools{display:flex;justify-content:center;gap:14px;padding-bottom:18px}
+  .tools button{font-family:var(--body);font-size:12.5px;color:var(--ink-3);background:none;border:0;text-decoration:underline;text-underline-offset:3px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ---- print ---- */
+  .printonly{display:none}
+  @media print{
+    body{background:#fff;color:#000;padding:0;line-height:1.7}
+    .noprint{display:none!important}
+    .deck{max-width:none}
+    .slide{
+      display:flex!important;min-height:0;break-inside:avoid;
+      border:1pt solid #999;border-radius:6px;box-shadow:none;
+      padding:6mm;margin:0 0 5mm;page-break-inside:avoid;
+    }
+    .slide:nth-child(2n){break-after:page}
+    h1{font-size:18pt}h2{font-size:14pt}
+    p.lead{font-size:10pt}p.small{font-size:8.5pt}
+    .big-answer{font-size:22pt}
+    .choice{min-height:0;padding:6px 10px;font-size:10pt}
+    ol.steps li{font-size:10pt}
+    .reveal{background:#f7f7f7!important;border-color:#999!important;color:#000!important}
+    .reveal .body{display:block!important;color:#000}
+    .fact .txt,.pbox ul{font-size:9pt}
+    @page{size:A4 portrait;margin:10mm}
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+<section class="slide" data-i="0"><span class="kicker big">5がつの りか</span><h1>たねを<br>まこう</h1><p class="lead">たねの 中には なにが 入っている？<br>まいたら どうなる？<br>ここから 4か月、そだてます。</p><p class="small">じかん：30ぷん ＋ まいしゅう 5ふん　／　つかうもの：たね、プランター、土、じょうろ、ものさし</p></section>
+<section class="slide" data-i="1" hidden><span class="kicker do">きょうの ながれ</span><h2>4つの しごと</h2><div class="facts"><div class="fact"><span class="ttl">① たねを 見る</span><span class="txt">大きさ・形・色を くらべる</span></div><div class="fact"><span class="ttl">② 中を 見る</span><span class="txt">水に つけて 開いてみる</span></div><div class="fact"><span class="ttl">③ まく</span><span class="txt">深さと 水やり</span></div><div class="fact"><span class="ttl">④ まいしゅう はかる</span><span class="txt">高さと 葉の かず</span></div></div><p class="small">この月の 本番は <b>まいしゅう 5ふんの 記ろく</b> です。4か月 つづきます。</p></section>
+<section class="slide" data-i="2" hidden><span class="kicker q">しつもん 1</span><h2>たねの 中には<br>なにが 入っている？</h2><p class="lead">小さな たねを わったら、何が 見えると 思う？</p><div class="choices" role="group" aria-label="予想をえらぶ"><button class="choice" type="button" data-pick="a"><span class="mark">ア</span><span>水が 入っている</span></button><button class="choice" type="button" data-pick="b"><span class="mark">イ</span><span>小さな 葉と 根が ある</span></button><button class="choice" type="button" data-pick="c"><span class="mark">ウ</span><span>なにも 入っていない</span></button></div></section>
+<section class="slide" data-i="3" hidden><span class="kicker do">じっけん 1 ／ 7ふん</span><h2>たねを 見くらべる</h2><ol class="steps"><li>ヒマワリ・ホウセンカ・インゲンの たねを ならべる</li><li>大きさ・形・色・さわった かんじを くらべて 書く</li><li>それぞれ 何倍の 大きさに なると 思う？　よそうを 書く</li></ol><p class="small">ウカの しごと：たねを 大きい じゅんに ならべる かかり。</p></section>
+<section class="slide" data-i="4" hidden><span class="kicker do">じっけん 2 ／ 8ふん</span><h2>たねの 中を 見る</h2><ol class="steps"><li>インゲンを <b>前の日の 夜から</b> 水に つけておく</li><li>ふやけた 皮を そっと むく</li><li>つめで そっと 2つに 開く</li><li>虫めがねで 中を 見る</li></ol><p class="small">小さな 葉と 根の もとが 見えます。たねは「赤ちゃんの 入った おべんとう箱」です。</p></section>
+<section class="slide" data-i="5" hidden><span class="kicker ans">わかったこと</span><h2>たねの 中に<br>小さな 葉と 根が ある</h2><p class="lead">まわりの 大きな 部分は、めが 出るまでの <b>食べもの</b>。<br>これが <b>子葉（しよう）</b> に なります。</p><p class="small">だから たねは、土に 入れて 水を やるだけで、しばらく ひとりで そだてるのです。</p></section>
+<section class="slide" data-i="6" hidden><span class="kicker do">じっけん 3 ／ 10ぷん</span><h2>たねを まく</h2><ol class="steps"><li>プランターに 土を 入れる</li><li>あなを ほる。深さは <b>たねの 2〜3ばい</b>（大きい たねほど 深く）</li><li>たねを 入れて、土を そっと かける</li><li>じょうろで たっぷり 水を やる</li><li>日なたに おく。ラベルに 日づけと 名前を 書く</li></ol><p class="small"><b>おまけの じっけん</b>：同じ たねを もう1つ まいて、日かげに おく。ちがいを くらべます。</p></section>
+<section class="slide" data-i="7" hidden><span class="kicker q">クイズ</span><h2>子葉と 本葉、<br>形は 同じ？</h2><p class="lead">さいしょに 出る 葉（子葉）と、あとから 出る 葉（本葉）。</p><button class="reveal" type="button" data-reveal>タップして こたえを みる<span class="body" hidden><b>ぜんぜん ちがいます。</b>子葉は たねの 中に あった 食べものの かたまりで、まるくて 分あつい。本葉が 出て じぶんで 栄養を 作れるように なると、子葉は しぼんで 落ちます。子葉が 落ちたら「ひとり立ち できた」と いうこと。</span></button></section>
+<section class="slide" data-i="8" hidden><span class="kicker big">大はっけん</span><h2>水・空気・日光</h2><p class="lead">植物が そだつのに いるのは この 3つ。<br><b>1つでも かけると そだちません。</b></p><p class="lead">日かげに おいた ほうと くらべると、どれくらい ちがうかが 目で わかります。</p><p class="small">まいしゅう 土よう日、高さを はかって 葉を かぞえる。それだけで りっぱな 研究に なります。</p></section>
+<section class="slide" data-i="9" hidden><span class="kicker ans">さいごに</span><h2>かんさつカードを かこう</h2><div class="facts"><div class="fact"><span class="ttl">① やったこと</span><span class="txt">なにを つかって、どう したか</span></div><div class="fact"><span class="ttl">② けっか</span><span class="txt">どう なったか。かずや じかんも かく</span></div><div class="fact"><span class="ttl">③ ふしぎに おもったこと</span><span class="txt">「なんで？」と 思ったことを 1つ</span></div></div><p class="lead">③が いちばん だいじ。こたえが 出なくても だいじょうぶです。</p><p class="small">つぎの 月（6がつ）は <b>「チョウの かんさつ」</b>。たまごから そだてます。植物の 記ろくも つづけます。</p></section>
+<section class="slide" data-i="10" hidden><span class="kicker pa">おうちの人へ</span><h2>じゅんびと すすめかた</h2><div class="pgrid"><div class="pbox"><h3>用意するもの</h3><ul><li>ヒマワリ・ホウセンカ・インゲンの種</li><li>プランターか紙コップ（底に穴）</li><li>培養土</li><li>じょうろ</li><li>ものさし</li><li>ラベル</li></ul></div><div class="pbox"><h3>4か月の運用</h3><ul><li>毎週土曜、5分だけ。高さ・葉の数・日付を記録</li><li>同じ場所から同じ角度で写真を撮ると変化が見える</li><li>9月に花と実、そして種が採れるところまで行く</li><li>枯らしてしまっても実験。理由を考えれば学びになる</li></ul></div><div class="pbox"><h3>声かけのコツ</h3><ul><li>予想が外れたときこそ「おもしろいね」と返す</li><li>答えを先に言わず「どうしてだと思う？」で止める</li><li>ウカには必ず手を動かす役を渡す</li><li>カイオには理由を説明させる（教えると理解が定着する）</li></ul></div></div><div class="warn"><b>安全について。</b>土には細菌がいるので、作業のあとは必ず手を洗います。園芸用の肥料や殺虫剤は子どもに触らせないでください。ヒマワリは背が高くなるので、倒れない場所を選びます。種は口に入れないよう最初に伝えてください。</div></section>
+
+<!-- nav -->
+<div class="nav noprint">
+  <button type="button" id="prev" aria-label="まえへ">←</button>
+  <div class="dots" id="dots" role="group" aria-label="スライドをえらぶ"></div>
+  <span class="counter" id="counter">1 / 11</span>
+  <button type="button" id="next" class="next" aria-label="つぎへ">→</button>
+</div>
+<div class="tools noprint">
+  <button type="button" id="first">さいしょから</button>
+  <button type="button" id="printBtn">いんさつする</button>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  var n = slides.length, cur = 0;
+  var dots = document.getElementById("dots");
+  var KEY = "rika.05.slide";
+
+  try { var saved = parseInt(localStorage.getItem(KEY), 10); if (!isNaN(saved) && saved >= 0 && saved < n) cur = saved; } catch (e) {}
+
+  var html = "";
+  for (var i = 0; i < n; i++) html += '<button type="button" class="dot" data-go="' + i + '" aria-label="' + (i+1) + 'まいめ"></button>';
+  dots.innerHTML = html;
+  var dotEls = Array.prototype.slice.call(dots.children);
+
+  function show(i){
+    cur = Math.max(0, Math.min(n - 1, i));
+    slides.forEach(function(s, k){ s.hidden = (k !== cur); });
+    dotEls.forEach(function(d, k){ d.setAttribute("aria-current", k === cur ? "true" : "false"); });
+    document.getElementById("counter").textContent = (cur + 1) + " / " + n;
+    document.getElementById("prev").disabled = (cur === 0);
+    document.getElementById("next").disabled = (cur === n - 1);
+    try { localStorage.setItem(KEY, String(cur)); } catch (e) {}
+    window.scrollTo(0, 0);
+  }
+
+  document.addEventListener("click", function(ev){
+    var t = ev.target;
+    var dot = t.closest("[data-go]");
+    if (dot) { show(parseInt(dot.dataset.go, 10)); return; }
+    var pick = t.closest("[data-pick]");
+    if (pick) {
+      var group = pick.parentNode;
+      Array.prototype.forEach.call(group.children, function(b){ b.setAttribute("aria-pressed", b === pick ? "true" : "false"); });
+      return;
+    }
+    var rev = t.closest("[data-reveal]");
+    if (rev) {
+      var body = rev.querySelector(".body");
+      body.hidden = false;
+      rev.dataset.open = "1";
+      rev.firstChild.textContent = "";
+      return;
+    }
+    if (t.id === "prev") show(cur - 1);
+    if (t.id === "next") show(cur + 1);
+    if (t.id === "first") show(0);
+    if (t.id === "printBtn") { slides.forEach(function(s){ s.hidden = false; }); window.print(); show(cur); }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if (e.key === "ArrowRight" || e.key === " ") { show(cur + 1); e.preventDefault(); }
+    if (e.key === "ArrowLeft") { show(cur - 1); e.preventDefault(); }
+  });
+
+  var x0 = null, y0 = null;
+  document.addEventListener("touchstart", function(e){ x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, {passive:true});
+  document.addEventListener("touchend", function(e){
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.6) show(cur + (dx < 0 ? 1 : -1));
+    x0 = null; y0 = null;
+  }, {passive:true});
+
+  window.addEventListener("beforeprint", function(){ slides.forEach(function(s){ s.hidden = false; }); });
+  window.addEventListener("afterprint", function(){ show(cur); });
+
+  show(cur);
+})();
+</script>
+
+</body>
+</html>
