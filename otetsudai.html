@@ -3,8 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>:root{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-<title>おてつだい ぬりつぶしシート</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="おてつだい">
+<style>:root{color-scheme:light dark}body{margin:0}[hidden]{display:none!important}</style>
+<title>おてつだいシートとおさいふ</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Old+Mincho:wght@600;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
   :root{
@@ -13,7 +15,7 @@
     --line:#E2DED3;--line-2:#CFC9BA;
     --ai:#1F4E6B;--ai-soft:#E6EEF3;
     --ho:#A9622F;--ho-soft:#F6EBE0;
-    --warn:#A4741B;--warn-soft:#F7EEDA;
+    --warn:#A4741B;--warn-soft:#F7EEDA;--good:#3F7D5A;--good-soft:#E6F0EA;--bad:#B03A26;--bad-soft:#F8E7E2;
     --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
     --sans:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
     --serif:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
@@ -23,14 +25,14 @@
     --ink:#E9E6DF;--ink-2:#AFB8C2;--ink-3:#7E8894;
     --line:#2E353F;--line-2:#3E4650;
     --ai:#79AECC;--ai-soft:#1D2A33;--ho:#D29866;--ho-soft:#2C241C;
-    --warn:#D6AC51;--warn-soft:#2E2718;
+    --warn:#D6AC51;--warn-soft:#2E2718;--good:#84BD98;--good-soft:#1C2A22;--bad:#E3806A;--bad-soft:#33211D;
   }}
   :root[data-theme="dark"]{
     --ground:#13171C;--surface:#1B2027;--surface-2:#232932;
     --ink:#E9E6DF;--ink-2:#AFB8C2;--ink-3:#7E8894;
     --line:#2E353F;--line-2:#3E4650;
     --ai:#79AECC;--ai-soft:#1D2A33;--ho:#D29866;--ho-soft:#2C241C;
-    --warn:#D6AC51;--warn-soft:#2E2718;
+    --warn:#D6AC51;--warn-soft:#2E2718;--good:#84BD98;--good-soft:#1C2A22;--bad:#E3806A;--bad-soft:#33211D;
   }
   *{box-sizing:border-box}
   body{background:var(--ground);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.9;margin:0;padding-inline:20px;padding-block:0 64px;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
@@ -155,7 +157,8 @@
   @media print{
     body{background:#fff;color:#000;padding:0;font-size:10pt;line-height:1.8}
     /* only the two designed sheets print — never the on-screen page */
-    .wrap > header, .wrap > section, .wrap > footer{display:none !important}
+    .wrap header, .wrap section, .wrap footer, #view-wallet, .banner, .notice{display:none !important}
+    #view-sheet{display:block !important}
     #printSection{display:block !important;padding:0}
     #printSection > h2, #printSection > .lede{display:none !important}
     .noprint{display:none !important}
@@ -205,23 +208,98 @@
     .pnote{font-size:8pt;margin-top:2mm;line-height:1.7}
     @page{margin:10mm}
   }
+
+  /* ---------- v2: views, sync banner, month close, wallet ---------- */
+  .views{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:14px}
+  .views button{flex:1;font-size:15px;font-weight:700;border:0;background:var(--surface);color:var(--ink-3);padding:10px;min-height:52px;cursor:pointer;line-height:1.4}
+  .views button[aria-pressed="true"]{background:var(--ink);color:var(--ground)}
+  .banner{margin-top:14px;padding:12px 14px;font-size:13px;line-height:1.8;border-left:3px solid var(--warn);background:var(--warn-soft);color:var(--ink-2)}
+  .notice{margin-top:14px;padding:12px 14px;font-size:13.5px;line-height:1.8;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+  .notice b{color:var(--ink)}
+  .notice .btn{min-height:40px;font-size:13px}
+
+  .btn{font-family:inherit;font-size:14px;font-weight:700;min-height:46px;padding:0 18px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);cursor:pointer;line-height:1.3}
+  .btn.primary{background:var(--ai);border-color:var(--ai);color:#fff}
+  .ho-mode .btn.primary{background:var(--ho);border-color:var(--ho)}
+  .btn.danger{color:var(--bad);border-color:var(--bad)}
+  .btn:disabled{opacity:.45;cursor:default}
+
+  .locknote{margin-top:12px;padding:13px 15px;background:var(--good-soft);border-left:3px solid var(--good);font-size:14px;line-height:1.8;color:var(--ink)}
+  .cal.locked .sq{cursor:default}
+  .cal.locked .sq:not(.on){opacity:.55}
+  .jobs.locked .jrow button{opacity:.4;cursor:default}
+
+  .closebox{margin-top:16px;border:1px solid var(--line-2);background:var(--surface);padding:16px 16px 18px;display:flex;flex-direction:column;gap:10px}
+  .closebox .ch{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-3)}
+  .closebox p{margin:0;font-size:13.5px;line-height:1.8;color:var(--ink-2)}
+  .closebox p b{color:var(--ink)}
+  .closebox .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .closebox.confirm{border-color:var(--ai);background:var(--ai-soft)}
+
+  .wallet-card{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--ai);padding:20px 20px 22px;display:flex;flex-direction:column;gap:6px}
+  .ho-mode .wallet-card{border-top-color:var(--ho)}
+  .wallet-card .lab{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--ink-3)}
+  .wallet-card .bal{font-family:var(--mono);font-size:clamp(44px,11vw,68px);line-height:1.05;color:var(--ai);font-variant-numeric:tabular-nums}
+  .ho-mode .wallet-card .bal{color:var(--ho)}
+  .wallet-card .bal em{font-style:normal;font-size:18px;color:var(--ink-3)}
+  .wallet-card .usd{font-family:var(--mono);font-size:22px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .wstats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-top:0}
+  .wstat{background:var(--surface-2);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+  .wstat .lab{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:var(--ink-3)}
+  .wstat .v{font-family:var(--mono);font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+  .spend{margin-top:16px;border:1px solid var(--line);background:var(--surface);padding:16px}
+  .spend .sh{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--ink-3);margin-bottom:10px}
+  .spend .row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+  .spend label{display:flex;flex-direction:column;gap:4px;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .spend label.grow{flex:1;min-width:180px}
+  .spend input{font-family:var(--sans);font-size:16px;padding:9px 10px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);min-height:46px;width:100%}
+  .spend input#spendPts{width:7em}
+  .spend .hint{margin:10px 0 0;font-size:12.5px;color:var(--ink-3)}
+  .spend .hint.err{color:var(--bad)}
+
+  .hh{font-family:var(--serif);font-weight:600;font-size:18px;margin:28px 0 8px}
+  .hist{border:1px solid var(--line);background:var(--surface)}
+  .hrow{display:grid;grid-template-columns:62px 1fr auto auto;gap:10px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line)}
+  .hrow:last-child{border-bottom:0}
+  .hrow .hdate{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .hrow .hlab{font-size:14px;line-height:1.6;color:var(--ink)}
+  .hrow .hlab small{display:block;font-size:11.5px;color:var(--ink-3)}
+  .hrow .amt{font-family:var(--mono);font-size:15px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .hrow .amt small{display:block;font-size:11px;color:var(--ink-3)}
+  .hrow .amt.plus{color:var(--good)}
+  .hrow .amt.minus{color:var(--bad)}
+  .hrow .x{font-size:13px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-3);min-width:38px;min-height:38px;cursor:pointer}
+  .hrow .x.hide{visibility:hidden}
+  body.kid .hrow .x{display:none}
+  body.kid .hrow{grid-template-columns:62px 1fr auto}
+  .hempty{padding:18px 14px;font-size:13.5px;color:var(--ink-3)}
 </style>
 </head>
-<body>
+<body class="kid">
 <div class="wrap">
 
 <header class="mast">
-  <p class="eyebrow parentonly">Chores &amp; Allowance — Fill-in Sheet</p>
+  <p class="eyebrow parentonly">Chores &amp; Allowance — Fill-in Sheet + Wallet</p>
   <h1>おてつだい<br>ぬりつぶしシート</h1>
-  <p class="standfirst">1<ruby>日<rt>にち</rt></ruby>に 1<ruby>行<rt>ぎょう</rt></ruby>ずつ。おてつだいを したら、その<ruby>日<rt>ひ</rt></ruby>の マスを ぬります。<ruby>兄妹<rt>きょうだい</rt></ruby>で <ruby>同<rt>おな</rt></ruby>じ シート、<ruby>同<rt>おな</rt></ruby>じ ルール。</p>
+  <p class="standfirst">1<ruby>日<rt>にち</rt></ruby>に 1<ruby>行<rt>ぎょう</rt></ruby>ずつ。おてつだいを したら、その<ruby>日<rt>ひ</rt></ruby>の マスを ぬります。<ruby>月<rt>つき</rt></ruby>が おわったら、ぬった マスが <b>おさいふ</b>に 入ります。</p>
   <div class="modebar noprint">
     <div class="modes" role="group" aria-label="がめんを えらぶ">
       <button type="button" id="mode-kid" aria-pressed="false">こども</button>
       <button type="button" id="mode-parent" aria-pressed="true">おうちの人</button>
     </div>
-    <span class="savehint" id="savehint"></span>
+    <span class="savehint" id="savehint">よみこみちゅう…</span>
   </div>
+  <div class="views noprint" role="tablist" aria-label="ページを えらぶ">
+    <button type="button" id="view-btn-sheet" role="tab" aria-pressed="true">ぬりつぶしシート</button>
+    <button type="button" id="view-btn-wallet" role="tab" aria-pressed="false">おさいふ</button>
+  </div>
+  <div class="banner noprint" id="banner" hidden></div>
+  <div class="notice parentonly noprint" id="notice" hidden></div>
 </header>
+
+<!-- ============ SHEET VIEW ============ -->
+<div id="view-sheet">
 
 <section>
   <h2><span class="num">01 — Rules</span>おやくそくは 4つ</h2>
@@ -229,7 +307,7 @@
     <div class="rule"><span class="no">01</span><span class="txt">おてつだいを したら、<b>きょうの <ruby>行<rt>ぎょう</rt></ruby>の マスを ぬる</b>。<ruby>何<rt>なに</rt></ruby>を したか いえること</span></div>
     <div class="rule"><span class="no">02</span><span class="txt">1<ruby>日<rt>にち</rt></ruby>の <ruby>行<rt>ぎょう</rt></ruby>は <b>10マス</b>。ぬりきったら その<ruby>日<rt>ひ</rt></ruby>は おしまい</span></div>
     <div class="rule"><span class="no">03</span><span class="txt">1か<ruby>月<rt>げつ</rt></ruby>で <b>100マス</b> こえたら もくひょう たっせい</span></div>
-    <div class="rule"><span class="no">04</span><span class="txt">もらったら、<ruby>半分<rt>はんぶん</rt></ruby>は <b>ためる</b>、<ruby>半分<rt>はんぶん</rt></ruby>は <b>つかう</b></span></div>
+    <div class="rule"><span class="no">04</span><span class="txt"><ruby>月<rt>つき</rt></ruby>が おわったら、ぬった マスが <b>おさいふ</b>に 入る。<b>ためても つかっても いい</b></span></div>
   </div>
 </section>
 
@@ -248,23 +326,27 @@
       <button id="tab-hanon" class="ho" type="button" aria-pressed="false">羽栞</button>
     </div>
     <div class="navbar">
-      <button type="button" id="prevM">◀</button>
+      <button type="button" id="prevM" aria-label="まえの つき">◀</button>
       <span class="mlabel" id="mlabel">—</span>
-      <button type="button" id="nextM">▶</button>
+      <button type="button" id="nextM" aria-label="つぎの つき">▶</button>
     </div>
   </div>
-  <p class="status noprint" id="status">よみこみちゅう…</p>
+  <p class="status noprint" id="status"></p>
 
-  <div class="cal noprint">
+  <div class="locknote noprint" id="locknote" hidden></div>
+
+  <div class="cal noprint" id="cal">
     <div class="calhd"><span>ひ</span><span>ぬったマス（1日 10マスまで）</span><span>ごうけい</span></div>
     <div id="days"></div>
     <div class="sheetfoot">
-      <span class="sf"><span class="lab">こんげつ</span><span class="big" id="total">0<em> / 100 マス</em></span></span>
+      <span class="sf"><span class="lab">この月</span><span class="big" id="total">0<em> / 100 マス</em></span></span>
       <span class="sf" id="todayWrap"><span class="lab">きょう</span><span class="big" id="today">0<em> / 10</em></span></span>
-      <span class="sf parentonly"><span class="lab">きんがく</span><span class="big" id="money">$0.00</span></span>
+      <span class="sf"><span class="lab">ドルにすると</span><span class="big" id="money">$0.00</span></span>
     </div>
   </div>
   <p class="goal" id="goal">—</p>
+
+  <div class="closebox parentonly noprint" id="closebox"></div>
 </section>
 
 <section class="parentonly">
@@ -278,23 +360,22 @@
         <label>1日の上限（マス）<input id="cap" type="number" step="1" min="1" max="20" value="10" inputmode="numeric" aria-label="1日の上限マス数"></label>
         <label>1か月の目標（マス）<input id="goalN" type="number" step="10" min="10" value="100" inputmode="numeric" aria-label="1か月の目標マス数"></label>
       </div>
-      <p><b>1枚 = 1か月。</b>行が日づけになっているので、毎日同じ紙（または画面）に書き足していきます。1日の上限が10マスなので、1行10マスがそのまま「その日の上限」です。月末にマスを数えて精算します。</p>
-      <p><b>侃生</b>：マス数 × 単価を、翌月の第1日曜に精算。半分は「ためるふくろ」、半分は「つかうふくろ」へ。<br>
-      <b>羽栞</b>：目標マス達成で<b>「体験のごほうび」</b>（公園を選ぶ権利、パンケーキの係、絵本を1冊選ぶ権利など）。5歳は抽象的な金銭概念の理解にまだ早い時期なので、現金は渡しません。シートの中身とルールは兄と同じです。</p>
+      <p><b>月の締め方。</b>月が変わったら、シートで前の月を開き、下の<b>「○月を しめる」</b>を押します。その月に塗ったマスがまとめて<b>おさいふ</b>に入り、その月のシートは塗れなくなります。間違えたときは<b>「しめを とりけす」</b>で戻せます。</p>
+      <p><b>おさいふ。</b>1人1つ。毎月の分が足されていき、使った分は「おさいふ」ページで<b>「つかう」</b>から引きます。単位はマスで、ドルは<b>1マスあたりの単価で換算した表示</b>です（単価を変えると、残高のドル表示も変わります）。</p>
       <p>金額の公的な推奨値は AAP も CFPB も示していません。最初の1か月は金額を気にせず回し、実績が出てから単価と目標を決め直すと現実的な額に落ち着きます。</p>
     </div>
   </div>
 
   <div class="parent">
-    <div class="ph">子どものiPadで使う</div>
+    <div class="ph">iPadとスマホで使う</div>
     <div class="pb">
       <ol>
-        <li>このHTMLファイルをiPadの「ファイル」アプリ（iCloud Drive）に入れる</li>
-        <li>ファイルをタップして開く。<b>最初からこども画面で開きます</b></li>
-        <li>「おうちの人」に切り替えると、金額の設定と印刷が使えます</li>
+        <li>iPadのSafariでこのページを開く</li>
+        <li>画面の上で<b>「こども」</b>を選ぶ（次からもその設定で開きます）</li>
+        <li>共有ボタン → <b>「ホーム画面に追加」</b></li>
       </ol>
-      <p><b>Claudeアプリも、アカウントも、インターネットも不要です。</b>記録はそのiPadの中に保存されます。端末ごとに別々の記録になるので、侃生のiPad、羽栞のiPad、Cleo の画面はそれぞれ独立しています。</p>
-      <p><b>注意。</b>ファイルとして開いた場合、記録の保存はWebリンク版より確実性が落ちます（iPadのSafariがファイルごとの保存領域を消すことがあります）。月末に合計マス数だけ印刷シートかノートに控えておくと安全です。<b>印刷したシートを主、iPadを従</b>にするのがいちばん壊れません。</p>
+      <p><b>記録はクラウド（Firebase）に保存され、2台のiPadと親のスマホで同じ内容が見えます。</b>うんどうチャレンジと同じ仕組みで、運動の記録とは別の場所に保存しています。</p>
+      <p>画面上に「どうき できません」と出たときは、その端末の中にだけ保存されている状態です。通信が戻ったら開き直してください。</p>
     </div>
   </div>
 
@@ -316,7 +397,7 @@
 
 <section class="parentonly" id="printSection">
   <h2><span class="num">05 — Print</span>いんさつして かべに はる</h2>
-  <p class="lede">A4で2枚です。<b>1枚め＝やくそくの説明</b>、<b>2枚め＝ぬりつぶしシート</b>（上段が侃生、下段が羽栞）。シートは1枚で1か月使えます。</p>
+  <p class="lede">1か月版はA4で3枚（やくそく＋1人1枚）、1週間版は2枚です。</p>
   <div class="actions noprint">
     <label class="lede" style="margin:0;font-size:13px">シートの長さ
       <select id="span" aria-label="印刷するシートの長さ">
@@ -324,7 +405,7 @@
         <option value="week">1週間（7日ぶん・大きめ）</option>
       </select>
     </label>
-    <button type="button" id="printBtn">いんさつする（A4 2まい）</button>
+    <button type="button" id="printBtn">いんさつする</button>
   </div>
   <div class="printonly" id="printArea"></div>
 </section>
@@ -335,8 +416,51 @@
 </footer>
 </div>
 
+<!-- ============ WALLET VIEW ============ -->
+<div id="view-wallet" hidden>
+<section>
+  <h2><span class="num">Wallet</span>おさいふ</h2>
+  <p class="lede"><ruby>月<rt>つき</rt></ruby>を しめるたびに、その月に ぬった マスが ここに たまります。ためても いいし、つかっても いい。</p>
+
+  <div class="bar noprint">
+    <div class="tabs" role="group" aria-label="だれの おさいふか えらぶ">
+      <button id="wtab-kansei" type="button" aria-pressed="true">侃生</button>
+      <button id="wtab-hanon" class="ho" type="button" aria-pressed="false">羽栞</button>
+    </div>
+  </div>
+
+  <div class="wallet-card" id="wcard">
+    <span class="lab" id="wname">かいおの おさいふ</span>
+    <span class="bal" id="wbal">0<em> マス</em></span>
+    <span class="usd" id="wusd">$0.00</span>
+  </div>
+  <div class="wstats">
+    <div class="wstat"><span class="lab">これまでに ためた</span><span class="v" id="wearn">0 マス</span></div>
+    <div class="wstat"><span class="lab">これまでに つかった</span><span class="v" id="wspent">0 マス</span></div>
+  </div>
+
+  <div class="spend parentonly" id="spendbox">
+    <div class="sh">つかう（おうちの人が おす）</div>
+    <div class="row">
+      <label>マス<input id="spendPts" type="number" min="1" step="1" inputmode="numeric" placeholder="例 50"></label>
+      <label class="grow">なにに つかった？<input id="spendNote" type="text" maxlength="40" placeholder="例 レゴの ミニセット"></label>
+      <button type="button" class="btn primary" id="spendBtn">つかう</button>
+    </div>
+    <p class="hint" id="spendHint">いまの のこり：0マス（$0.00）</p>
+  </div>
+
+  <h3 class="hh">きろく</h3>
+  <div class="hist" id="hist"></div>
+</section>
+</div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
 (function(){
+  "use strict";
   var GROUPS = [
     {t:"1マス ／ まいにちの とうばん", jobs:[
       {id:"gohan", n:'ごはんの したく', b:1},
@@ -377,329 +501,542 @@
     self:"いわれる 前（まえ）に じぶんで みつけて やる"
   };
   var CHILD = {kansei:{n:"侃生", r:"かいお"}, hanon:{n:"羽栞", r:"うか"}};
+  var KIDS = ["kansei","hanon"];
   var WD = ["にち","げつ","か","すい","もく","きん","ど"];
-  var K = "ots.v1.";
 
-  /* ---- device-local storage (works with no sign-in) ---- */
-  var LS = {
-    get:function(k){ try{ var v=localStorage.getItem(K+k); return v?JSON.parse(v):null; }catch(e){ return null; } },
-    set:function(k,v){ try{ localStorage.setItem(K+k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+  var FB_PATH = "otetsudai-data";
+  var firebaseConfig = {
+    apiKey: "AIzaSyAgi34Z09TYpBgprh2iBpNrN4PAaa6AEjU",
+    authDomain: "kaio-uka-athletic-program.firebaseapp.com",
+    databaseURL: "https://kaio-uka-athletic-program-default-rtdb.firebaseio.com",
+    projectId: "kaio-uka-athletic-program",
+    storageBucket: "kaio-uka-athletic-program.firebasestorage.app",
+    messagingSenderId: "1087579427984",
+    appId: "1:1087579427984:web:7f6c889c698c73ae827415"
   };
-  var localOK = (function(){ try{ localStorage.setItem(K+"t","1"); localStorage.removeItem(K+"t"); return true; }catch(e){ return false; } })();
 
-  var db=null, writing={}, cfgWriting=false, subs={};
-  var cfg = {rate:0.10, cap:10, goal:100, updatedAt:""};
-  var current = "kansei";
-  var mode = "kid";
-  var month = new Date();
-  var store = {kansei:{}, hanon:{}};
+  /* ---------- local storage ---------- */
+  function lsGet(k){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+  var LS_STATE = "ots.v2.state", LS_MIG = "ots.v2.migrated";
+
+  /* ---------- state ---------- */
+  function blank(){ return {cfg:{rate:0.10, cap:10, goal:100}, children:{kansei:{sheets:{}, wallet:{}}, hanon:{sheets:{}, wallet:{}}}}; }
+  function normDays(d){
+    var o={};
+    if(Array.isArray(d)){ d.forEach(function(v,i){ if(v) o["d"+String(i).padStart(2,"0")]=v; }); return o; }
+    Object.keys(d||{}).forEach(function(k){
+      var v=parseInt(d[k],10); if(!v) return;
+      var key = /^d\d\d$/.test(k) ? k : "d"+String(parseInt(k,10)).padStart(2,"0");
+      o[key]=v;
+    });
+    return o;
+  }
+  function norm(v){
+    var o=blank(); v=v||{};
+    if(v.cfg){ ["rate","cap","goal"].forEach(function(p){ if(typeof v.cfg[p]==="number" && v.cfg[p]>0) o.cfg[p]=v.cfg[p]; }); }
+    KIDS.forEach(function(k){
+      var c=(v.children||{})[k]||{};
+      var sh=c.sheets||{};
+      Object.keys(sh).forEach(function(m){
+        var s=sh[m]||{};
+        o.children[k].sheets[m]={days:normDays(s.days), closed:!!s.closed, closedAt:s.closedAt||"", closedPts:s.closedPts||0, closedTx:s.closedTx||""};
+      });
+      var w=c.wallet||{};
+      Object.keys(w).forEach(function(id){
+        var t=w[id]||{};
+        if((t.type==="earn"||t.type==="spend") && t.pts>0) o.children[k].wallet[id]={type:t.type, pts:t.pts, month:t.month||"", note:t.note||"", at:t.at||""};
+      });
+    });
+    return o;
+  }
+  var S = norm(lsGet(LS_STATE));
+  var hadLocalV2 = !!lsGet(LS_STATE);
+
+  function setPath(obj, path, val){
+    var p=path.split("/"), o=obj;
+    for(var i=0;i<p.length-1;i++){
+      if(o[p[i]]==null || typeof o[p[i]]!=="object"){ if(val===null) return; o[p[i]]={}; }
+      o=o[p[i]];
+    }
+    if(val===null) delete o[p[p.length-1]]; else o[p[p.length-1]]=val;
+  }
+
+  /* ---------- firebase ---------- */
+  var fbRef=null, fbErr=false, fbOnline=false, fbLoaded=false;
+  function newId(){
+    if(fbRef){ try{ return fbRef.push().key; }catch(e){} }
+    return "L"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  }
+  function commit(updates){
+    Object.keys(updates).forEach(function(p){ setPath(S, p, updates[p]); });
+    S = norm(S);
+    lsSet(LS_STATE, S);
+    render();
+    if(fbRef && !fbErr){
+      fbRef.update(updates).catch(function(e){ syncFailed(e); });
+    }
+  }
+  function syncFailed(){
+    fbErr=true;
+    var b=document.getElementById("banner");
+    b.innerHTML = "<b>どうき できません</b> — いまは この端末の中だけで 動いています。"
+      + '<span class="parentonly"><br>おうちの人へ：通信を確認して開き直してください。直らない場合は、Firebaseのルールで <code>'+FB_PATH+'</code> への読み書きが許可されているか確認が必要です。</span>';
+    b.hidden=false;
+    setHint();
+  }
+
+  /* v1 (端末内だけの版) の記録を 1回だけ とりこむ */
+  function v1Data(){
+    var out={};
+    try{
+      for(var i=0;i<localStorage.length;i++){
+        var key=localStorage.key(i), m=/^ots\.v1\.sheet\.(kansei|hanon)\.(\d{4}-\d{2})$/.exec(key||"");
+        if(!m) continue;
+        var v=lsGet(key); if(!v||!v.days) continue;
+        out[m[1]]=out[m[1]]||{}; out[m[1]][m[2]]=normDays(v.days);
+      }
+    }catch(e){}
+    return out;
+  }
+  function migrationUpdates(){
+    var v1=v1Data(), up={};
+    Object.keys(v1).forEach(function(k){
+      Object.keys(v1[k]).forEach(function(m){
+        var sh=S.children[k].sheets[m];
+        if(sh && sh.closed) return;
+        var cur=(sh&&sh.days)||{};
+        Object.keys(v1[k][m]).forEach(function(d){
+          var n=Math.min(v1[k][m][d], 20);
+          if(n>(cur[d]||0)) up["children/"+k+"/sheets/"+m+"/days/"+d]=n;
+        });
+      });
+    });
+    return up;
+  }
+  function v1Cfg(){
+    var c=lsGet("ots.v1.cfg"), up={};
+    if(c){ ["rate","cap","goal"].forEach(function(p){ if(typeof c[p]==="number" && c[p]>0) up["cfg/"+p]=c[p]; }); }
+    return up;
+  }
+
+  /* ---------- view state ---------- */
+  var current = "kansei", mode = "kid", view = "sheet";
+  var month = new Date(); month = new Date(month.getFullYear(), month.getMonth(), 1);
+  var confirming = null;   // "close" | "reopen" | null
+  var armedDel = null;
 
   function mkey(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
-  function dkey(){ return String(new Date().getDate()).padStart(2,"0"); }
-  function isThisMonth(){ return mkey(month)===mkey(new Date()); }
+  function dkey(){ return "d"+String(new Date().getDate()).padStart(2,"0"); }
+  function thisMonthKey(){ return mkey(new Date()); }
+  function isThisMonth(){ return mkey(month)===thisMonthKey(); }
   function dim(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate(); }
-  function skey(child){ return "sheet."+child+"."+mkey(month); }
+  function mnum(m){ return parseInt(m.slice(5),10); }
+  function isLastDay(){ var t=new Date(); return t.getDate()===dim(t); }
+  function usd(p){ return "$"+(p*S.cfg.rate).toFixed(2); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function mmdd(iso){ if(!iso) return "—"; var d=new Date(iso); return isNaN(d) ? "—" : String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0"); }
 
-  function bucket(child){
-    var m = mkey(month);
-    if(!store[child][m]){
-      var l = LS.get("sheet."+child+"."+m);
-      store[child][m] = (l && l.days) ? {days:l.days, updatedAt:l.updatedAt||""} : {days:{}, updatedAt:""};
-    }
-    return store[child][m];
+  function sheet(k,m){ return S.children[k].sheets[m||mkey(month)] || {days:{}, closed:false, closedPts:0}; }
+  function sumDays(days){ var t=0; Object.keys(days).forEach(function(d){ t+=days[d]||0; }); return t; }
+  function txs(k){
+    var w=S.children[k].wallet;
+    return Object.keys(w).map(function(id){ var t=w[id]; return {id:id, type:t.type, pts:t.pts, month:t.month, note:t.note, at:t.at}; })
+      .sort(function(a,b){ return (b.at||"").localeCompare(a.at||""); });
   }
-  function total(child){
-    var d = bucket(child).days, t=0;
-    Object.keys(d).forEach(function(k){ t += d[k]||0; });
-    return t;
-  }
+  function earned(k){ return txs(k).filter(function(t){return t.type==="earn";}).reduce(function(a,t){return a+t.pts;},0); }
+  function spent(k){ return txs(k).filter(function(t){return t.type==="spend";}).reduce(function(a,t){return a+t.pts;},0); }
+  function balance(k){ return earned(k)-spent(k); }
 
+  /* ---------- build ---------- */
   function buildJobs(){
-    var el = document.getElementById("jobs"), h = "";
+    var h="";
     GROUPS.forEach(function(g){
       h += '<div class="jgroup">'+g.t+'</div>';
       g.jobs.forEach(function(j){
-        var bx=""; for(var i=0;i<j.b;i++) bx += "<i></i>";
-        h += '<div class="jrow"><span class="nm">'+j.n+'</span>'
-           + '<span class="bx" aria-label="'+j.b+'マス">'+bx+'</span>'
+        var bx=""; for(var i=0;i<j.b;i++) bx+="<i></i>";
+        h += '<div class="jrow"><span class="nm">'+j.n+'</span><span class="bx" aria-label="'+j.b+'マス">'+bx+'</span>'
            + '<button type="button" data-b="'+j.b+'">ぬる +'+j.b+'</button></div>';
       });
     });
-    el.innerHTML = h;
+    document.getElementById("jobs").innerHTML=h;
+  }
+  var builtFor="";
+  function buildDays(){
+    var cap=S.cfg.cap, n=dim(month), h="";
+    for(var i=1;i<=n;i++){
+      var w=new Date(month.getFullYear(), month.getMonth(), i).getDay(), dd="d"+String(i).padStart(2,"0"), cells="";
+      for(var c=1;c<=cap;c++) cells += '<button type="button" class="sq" data-d="'+dd+'" data-c="'+c+'" aria-label="'+i+'日 '+c+'マスめ"></button>';
+      h += '<div class="drow'+((w===0||w===6)?' wk':'')+'" data-day="'+dd+'"><span class="dl"><b>'+i+'</b> '+WD[w]+'</span>'
+         + '<span class="cells" style="grid-template-columns:repeat('+cap+',1fr)">'+cells+'</span><span class="dt" data-t="'+dd+'">—</span></div>';
+    }
+    document.getElementById("days").innerHTML=h;
+    builtFor = mkey(month)+"/"+cap;
   }
 
-  function buildDays(){
-    var el = document.getElementById("days"), n = dim(month), h="";
-    for(var i=1;i<=n;i++){
-      var dt = new Date(month.getFullYear(), month.getMonth(), i), w = dt.getDay(), dd = String(i).padStart(2,"0");
-      var cells="";
-      for(var c=1;c<=cfg.cap;c++){
-        cells += '<button type="button" class="sq" data-d="'+dd+'" data-c="'+c+'" aria-label="'+i+'日 '+c+'マスめ"></button>';
-      }
-      h += '<div class="drow'+((w===0||w===6)?' wk':'')+'" data-day="'+dd+'">'
-         + '<span class="dl"><b>'+i+'</b> '+WD[w]+'</span>'
-         + '<span class="cells" style="grid-template-columns:repeat('+cfg.cap+',1fr)">'+cells+'</span>'
-         + '<span class="dt" data-t="'+dd+'">—</span></div>';
-    }
-    el.innerHTML = h;
+  /* ---------- render ---------- */
+  function setHint(){
+    var t;
+    if(fbErr || !fbRef) t = "この端末の中だけ（どうき できません）";
+    else if(!fbLoaded) t = "よみこみちゅう…";
+    else if(!fbOnline) t = "オフライン — つながったら どうきします";
+    else t = "みんなの iPad と どうき中";
+    document.getElementById("savehint").textContent=t;
   }
+  function pressed(id,on){ document.getElementById(id).setAttribute("aria-pressed", on?"true":"false"); }
 
   function render(){
-    document.body.classList.toggle("ho-mode", current==="hanon");
-    document.body.classList.toggle("kid", mode==="kid");
-    document.getElementById("mode-kid").setAttribute("aria-pressed", mode==="kid"?"true":"false");
-    document.getElementById("mode-parent").setAttribute("aria-pressed", mode==="parent"?"true":"false");
-    document.getElementById("tab-kansei").setAttribute("aria-pressed", current==="kansei"?"true":"false");
-    document.getElementById("tab-hanon").setAttribute("aria-pressed", current==="hanon"?"true":"false");
+    if(builtFor !== mkey(month)+"/"+S.cfg.cap) buildDays();
+    var b=document.body;
+    b.classList.toggle("ho-mode", current==="hanon");
+    b.classList.toggle("kid", mode==="kid");
+    pressed("mode-kid", mode==="kid"); pressed("mode-parent", mode==="parent");
+    pressed("view-btn-sheet", view==="sheet"); pressed("view-btn-wallet", view==="wallet");
+    document.getElementById("view-sheet").hidden = view!=="sheet";
+    document.getElementById("view-wallet").hidden = view!=="wallet";
+    ["kansei","hanon"].forEach(function(k){ pressed("tab-"+k, current===k); pressed("wtab-"+k, current===k); });
+    ["rate","cap","goalN"].forEach(function(id){
+      var el=document.getElementById(id); if(document.activeElement!==el) el.value = S.cfg[id==="goalN"?"goal":id];
+    });
+    renderNotice();
+    if(view==="sheet") renderSheet(); else renderWallet();
+  }
+
+  function renderNotice(){
+    var el=document.getElementById("notice");
+    var tm=thisMonthKey(), pending={};
+    KIDS.forEach(function(k){
+      var sh=S.children[k].sheets;
+      Object.keys(sh).forEach(function(m){
+        if(m<tm && !sh[m].closed && sumDays(sh[m].days)>0){ (pending[m]=pending[m]||[]).push(k); }
+      });
+    });
+    var ms=Object.keys(pending).sort();
+    if(!ms.length){ el.hidden=true; el.innerHTML=""; return; }
+    var m=ms[ms.length-1];
+    var who=pending[m].map(function(k){return CHILD[k].r;}).join("・");
+    el.innerHTML = '<span><b>'+mnum(m)+'月</b>が まだ しめられていません（'+who+'）'+(ms.length>1?'　ほかに '+(ms.length-1)+'か月':'')+'</span>'
+      + '<button type="button" class="btn" data-goto="'+m+'" data-kid="'+pending[m][0]+'">'+mnum(m)+'月の シートを ひらく</button>';
+    el.hidden=false;
+  }
+
+  function renderSheet(){
+    var m=mkey(month), sh=sheet(current), days=sh.days, cap=S.cfg.cap, locked=!!sh.closed;
     document.getElementById("mlabel").textContent = month.getFullYear()+"年"+(month.getMonth()+1)+"月";
     document.getElementById("nextM").disabled = isThisMonth();
+    document.getElementById("cal").classList.toggle("locked", locked);
+    document.getElementById("jobs").classList.toggle("locked", locked || !isThisMonth());
 
-    var days = bucket(current).days;
-    document.querySelectorAll(".sq").forEach(function(s){
-      s.classList.toggle("on", parseInt(s.dataset.c,10) <= (days[s.dataset.d]||0));
-    });
-    document.querySelectorAll("[data-t]").forEach(function(t){
-      var v = days[t.dataset.t]||0;
-      t.textContent = v>0 ? v : "—";
-      t.classList.toggle("has", v>0);
-    });
-    document.querySelectorAll(".drow").forEach(function(r){
-      r.classList.toggle("today", isThisMonth() && r.dataset.day===dkey());
-    });
+    document.querySelectorAll(".sq").forEach(function(s){ s.classList.toggle("on", parseInt(s.dataset.c,10) <= (days[s.dataset.d]||0)); });
+    document.querySelectorAll("[data-t]").forEach(function(t){ var v=days[t.dataset.t]||0; t.textContent=v>0?v:"—"; t.classList.toggle("has", v>0); });
+    document.querySelectorAll(".drow").forEach(function(r){ r.classList.toggle("today", isThisMonth() && r.dataset.day===dkey()); });
 
-    var tot = total(current), td = isThisMonth() ? (days[dkey()]||0) : 0;
-    document.getElementById("total").innerHTML = tot+'<em> / '+cfg.goal+' マス</em>';
-    document.getElementById("today").innerHTML = td+'<em> / '+cfg.cap+'</em>';
-    document.getElementById("todayWrap").classList.toggle("cap", td>=cfg.cap);
-    document.getElementById("money").textContent = "$"+(tot*cfg.rate).toFixed(2);
+    var tot=sumDays(days), td=isThisMonth()?(days[dkey()]||0):0;
+    document.getElementById("total").innerHTML = tot+'<em> / '+S.cfg.goal+' マス</em>';
+    document.getElementById("today").innerHTML = td+'<em> / '+cap+'</em>';
+    document.getElementById("todayWrap").hidden = !isThisMonth();
+    document.getElementById("todayWrap").classList.toggle("cap", td>=cap);
+    document.getElementById("money").textContent = usd(tot);
 
-    var g = document.getElementById("goal");
-    if(tot>=cfg.goal){
-      g.textContent = current==="kansei"
-        ? "もくひょう たっせい！ いま "+tot+"マスです。つぎの 第1日よう日に せいさんします。"
-        : "もくひょう たっせい！ ごほうびの「たいけん」を えらべます。";
-    }else{
-      g.textContent = "もくひょうまで あと "+(cfg.goal-tot)+" マス。"+(td>=cfg.cap && isThisMonth() ? "　きょうの "+cfg.cap+"マスは ぬりきりました。つづきは あした。" : "");
-    }
+    var ln=document.getElementById("locknote");
+    if(locked){
+      ln.innerHTML = "✓ この月は しめました。<b>"+sh.closedPts+"マス（"+usd(sh.closedPts)+"）</b>は "+CHILD[current].r+"の おさいふに 入っています。";
+      ln.hidden=false;
+    } else ln.hidden=true;
+
+    var g=document.getElementById("goal");
+    if(locked) g.textContent = mnum(m)+"月は おしまい。つぎの 月も がんばろう。";
+    else if(tot>=S.cfg.goal) g.textContent = "もくひょう たっせい！ 月が おわったら おさいふに 入ります。";
+    else g.textContent = "もくひょうまで あと "+(S.cfg.goal-tot)+" マス。"+(td>=cap && isThisMonth() ? "　きょうの "+cap+"マスは ぬりきりました。つづきは あした。" : "");
+
+    renderClosebox(m, sh, tot);
   }
 
-  function setDay(child, d, n){
-    var b = bucket(child);
-    n = Math.max(0, Math.min(cfg.cap, n));
-    if((b.days[d]||0)===n) return;
-    if(n===0) delete b.days[d]; else b.days[d]=n;
-    b.updatedAt = new Date().toISOString();
-    render(); save(child);
-  }
-
-  function save(child){
-    var b = bucket(child);
-    var okLocal = LS.set(skey(child), {days:b.days, updatedAt:b.updatedAt});
-    setStatus(okLocal ? "この iPad に ほぞんしました。" : "このブラウザでは きろくを のこせません。");
-    if(!db) return;
-    var key = child+"_"+mkey(month);
-    if(writing[key]){ writing[key]="again"; return; }
-    writing[key]=true;
-    db.doc("sheet/"+key).set({child:child, month:mkey(month), days:b.days, updatedAt:b.updatedAt})
-      .then(function(){
-        var again = writing[key]==="again"; writing[key]=false; if(again) save(child);
-        setStatus("ほぞんしました（アカウントにも どうき）");
-      })
-      .catch(function(){ writing[key]=false; });
-  }
-
-  function saveCfg(){
-    cfg.updatedAt = new Date().toISOString();
-    LS.set("cfg", cfg);
-    if(!db||cfgWriting) return; cfgWriting=true;
-    db.doc("config/points").set({rate:cfg.rate, cap:cfg.cap, goal:cfg.goal, updatedAt:cfg.updatedAt})
-      .then(function(){cfgWriting=false;}).catch(function(){cfgWriting=false;});
-  }
-  function setStatus(t){ document.getElementById("status").textContent = t; }
-  function setHint(){
-    document.getElementById("savehint").textContent =
-      !localOK ? "きろくは のこりません" : (db ? "この端末に保存＋アカウントに同期" : "この端末のなかに ほぞん");
-  }
-
-  function subscribe(){
-    if(!db) return;
-    var m = mkey(month);
-    ["kansei","hanon"].forEach(function(child){
-      var key = child+"_"+m;
-      if(subs[key]) return;
-      subs[key] = db.doc("sheet/"+key).onSnapshot(function(snap){
-        if(!snap.exists) return;
-        var d = snap.data()||{}, b = bucket(child);
-        var remote = d.updatedAt||"", locl = b.updatedAt||"";
-        if(remote > locl){
-          store[child][m] = {days:Object.assign({}, d.days||{}), updatedAt:remote};
-          LS.set("sheet."+child+"."+m, store[child][m]);
-          render();
-        }else if(locl && locl > remote){
-          save(child);
+  function renderClosebox(m, sh, tot){
+    var el=document.getElementById("closebox"), r=CHILD[current].r, M=mnum(m)+"月", h;
+    el.classList.toggle("confirm", !!confirming);
+    if(sh.closed){
+      if(confirming==="reopen"){
+        var after = balance(current)-sh.closedPts;
+        if(after<0){
+          h = '<p>とりけすと おさいふが <b>'+after+'マス</b>に なってしまいます。先に「おさいふ」で つかった きろくを けしてから とりけしてください。</p>'
+            + '<div class="row"><button type="button" class="btn" data-act="cancel">もどる</button></div>';
+        }else{
+          h = '<p><b>'+r+'の '+M+'の しめを とりけします。</b>おさいふから '+sh.closedPts+'マスを もどし、シートを また ぬれるように します。</p>'
+            + '<div class="row"><button type="button" class="btn danger" data-act="reopen-ok">とりけす</button><button type="button" class="btn" data-act="cancel">やめる</button></div>';
         }
-      }, function(){});
+      }else{
+        h = '<span class="ch">MONTH CLOSED</span><p>✓ <b>'+M+'は しめました</b>（'+sh.closedPts+'マス → おさいふ・'+mmdd(sh.closedAt)+'）</p>'
+          + '<div class="row"><button type="button" class="btn" data-act="reopen">しめを とりけす</button></div>';
+      }
+    }else if(isThisMonth() && !isLastDay()){
+      var left = dim(month)-new Date().getDate();
+      h = '<span class="ch">MONTH CLOSE</span><p>'+M+'は まだ とちゅうです（あと '+left+'日）。月が おわったら、ここで しめます。</p>';
+    }else if(confirming==="close"){
+      h = '<p><b>'+r+'の '+M+'を しめて、'+tot+'マス（'+usd(tot)+'）を おさいふに 入れます。</b><br>しめた 月の シートは ぬれなくなります。</p>'
+        + '<div class="row"><button type="button" class="btn primary" data-act="close-ok">しめる</button><button type="button" class="btn" data-act="cancel">やめる</button></div>';
+    }else{
+      h = '<span class="ch">MONTH CLOSE</span><p>'+r+'の '+M+'：<b>'+tot+'マス（'+usd(tot)+'）</b>。しめると おさいふに 入ります。</p>'
+        + '<div class="row"><button type="button" class="btn primary" data-act="close">'+M+'を しめる</button></div>';
+    }
+    el.innerHTML=h;
+  }
+
+  function renderWallet(){
+    var k=current, bal=balance(k);
+    document.getElementById("wname").textContent = CHILD[k].r+"の おさいふ";
+    document.getElementById("wbal").innerHTML = bal.toLocaleString("en-US")+'<em> マス</em>';
+    document.getElementById("wusd").textContent = usd(bal);
+    document.getElementById("wearn").textContent = earned(k).toLocaleString("en-US")+" マス（"+usd(earned(k))+"）";
+    document.getElementById("wspent").textContent = spent(k).toLocaleString("en-US")+" マス（"+usd(spent(k))+"）";
+    var hint=document.getElementById("spendHint");
+    if(hint.dataset.keep!==k){ hint.classList.remove("err"); delete hint.dataset.keep; }
+    if(!hint.classList.contains("err") && !hint.dataset.keep) hint.textContent = "いまの のこり："+bal.toLocaleString("en-US")+"マス（"+usd(bal)+"）";
+
+    var list=txs(k), h="";
+    if(!list.length) h='<div class="hempty">まだ ありません。月を しめると、ここに たまります。</div>';
+    list.forEach(function(t){
+      var earn=t.type==="earn";
+      var lab = earn ? (t.month ? mnum(t.month)+"月の おてつだい" : "おてつだい") : (t.note ? esc(t.note) : "つかった");
+      var sub = earn ? "<small>月を しめて 入った</small>" : "<small>つかった</small>";
+      var x = earn ? '<button type="button" class="x hide" tabindex="-1" aria-hidden="true">×</button>'
+                   : '<button type="button" class="x" data-del="'+t.id+'" aria-label="この きろくを けす">'+(armedDel===t.id?"けす？":"×")+'</button>';
+      h += '<div class="hrow"><span class="hdate">'+mmdd(t.at)+'</span><span class="hlab">'+lab+sub+'</span>'
+         + '<span class="amt '+(earn?"plus":"minus")+'">'+(earn?"+":"−")+t.pts.toLocaleString("en-US")+'<small>'+usd(t.pts)+'</small></span>'+x+'</div>';
     });
+    document.getElementById("hist").innerHTML=h;
+  }
+
+  /* ---------- actions ---------- */
+  function setDay(d, n){
+    var sh=sheet(current);
+    if(sh.closed) return;
+    n=Math.max(0, Math.min(S.cfg.cap, n));
+    if((sh.days[d]||0)===n) return;
+    var up={}; up["children/"+current+"/sheets/"+mkey(month)+"/days/"+d] = n===0 ? null : n;
+    commit(up);
+    setStatus(fbRef&&!fbErr ? "ほぞんしました" : "この端末に ほぞんしました");
+  }
+  function closeMonth(){
+    var k=current, m=mkey(month), sh=sheet(k);
+    if(sh.closed) return;
+    var tot=sumDays(sh.days), now=new Date().toISOString(), id=tot>0?newId():null, base="children/"+k+"/sheets/"+m+"/", up={};
+    up[base+"closed"]=true; up[base+"closedAt"]=now; up[base+"closedPts"]=tot; up[base+"closedTx"]=id;
+    if(id) up["children/"+k+"/wallet/"+id]={type:"earn", pts:tot, month:m, at:now};
+    confirming=null; commit(up);
+    setStatus(mnum(m)+"月を しめました（"+tot+"マス → おさいふ）");
+  }
+  function reopenMonth(){
+    var k=current, m=mkey(month), sh=sheet(k);
+    if(!sh.closed || balance(k)-sh.closedPts<0) return;
+    var base="children/"+k+"/sheets/"+m+"/", up={};
+    up[base+"closed"]=null; up[base+"closedAt"]=null; up[base+"closedPts"]=null; up[base+"closedTx"]=null;
+    if(sh.closedTx) up["children/"+k+"/wallet/"+sh.closedTx]=null;
+    confirming=null; commit(up);
+    setStatus(mnum(m)+"月の しめを とりけしました");
+  }
+  function spend(){
+    var hint=document.getElementById("spendHint"), ptsEl=document.getElementById("spendPts"), noteEl=document.getElementById("spendNote");
+    var pts=parseInt(ptsEl.value,10), bal=balance(current), note=noteEl.value.trim().slice(0,40);
+    hint.classList.remove("err"); delete hint.dataset.keep;
+    if(!(pts>=1)){ hint.textContent="つかう マスの かずを 入れてください（1いじょう）"; hint.classList.add("err"); return; }
+    if(pts>bal){ hint.textContent="のこりが たりません（いま "+bal+"マス）"; hint.classList.add("err"); return; }
+    var id=newId(), up={};
+    up["children/"+current+"/wallet/"+id]={type:"spend", pts:pts, note:note, at:new Date().toISOString()};
+    ptsEl.value=""; noteEl.value="";
+    commit(up);
+    hint.textContent = pts+"マス（"+usd(pts)+"）つかいました。のこり "+balance(current)+"マス。";
+    hint.dataset.keep=current;
+  }
+  function setStatus(t){ document.getElementById("status").textContent=t; }
+  function setView(v){
+    view=v; confirming=null; armedDel=null;
+    try{ history.replaceState(null,"", v==="wallet" ? "#wallet" : location.pathname+location.search); }catch(e){}
+    var h=document.getElementById("spendHint"); h.classList.remove("err"); delete h.dataset.keep;
+    render(); window.scrollTo(0,0);
   }
 
   document.addEventListener("click", function(ev){
-    var jb = ev.target.closest(".jrow button");
+    var t=ev.target;
+    var jb=t.closest(".jrow button");
     if(jb){
       if(!isThisMonth()){ setStatus("こんげつの シートに きりかえてから ぬってください。"); return; }
-      var d = dkey();
-      setDay(current, d, (bucket(current).days[d]||0) + parseInt(jb.dataset.b,10));
-      return;
+      if(sheet(current).closed){ setStatus("この月は しめました。"); return; }
+      var d=dkey(); setDay(d, (sheet(current).days[d]||0)+parseInt(jb.dataset.b,10)); return;
     }
-    var sq = ev.target.closest(".sq");
+    var sq=t.closest(".sq");
     if(sq){
-      var day = sq.dataset.d, c = parseInt(sq.dataset.c,10);
-      setDay(current, day, (c===(bucket(current).days[day]||0)) ? c-1 : c);
+      if(sheet(current).closed) return;
+      var day=sq.dataset.d, c=parseInt(sq.dataset.c,10);
+      setDay(day, (c===(sheet(current).days[day]||0)) ? c-1 : c); return;
+    }
+    var act=t.closest("[data-act]");
+    if(act && mode==="parent"){
+      var a=act.dataset.act;
+      if(a==="close"){ confirming="close"; render(); }
+      else if(a==="reopen"){ confirming="reopen"; render(); }
+      else if(a==="cancel"){ confirming=null; render(); }
+      else if(a==="close-ok") closeMonth();
+      else if(a==="reopen-ok") reopenMonth();
       return;
     }
-    var id = ev.target.id;
-    if(id==="mode-kid" || id==="mode-parent"){
-      mode = (id==="mode-kid") ? "kid" : "parent";
-      LS.set("mode", mode); render(); window.scrollTo(0,0); return;
+    var go=t.closest("[data-goto]");
+    if(go){
+      var p=go.dataset.goto.split("-");
+      month=new Date(parseInt(p[0],10), parseInt(p[1],10)-1, 1); current=go.dataset.kid; confirming=null;
+      view="sheet"; setView("sheet");
+      var cb=document.getElementById("closebox"); if(cb.scrollIntoView) cb.scrollIntoView({block:"center"});
+      return;
     }
-    if(id==="tab-kansei"){ current="kansei"; LS.set("who", current); render(); }
-    if(id==="tab-hanon"){ current="hanon"; LS.set("who", current); render(); }
-    if(id==="prevM"){ month = new Date(month.getFullYear(), month.getMonth()-1, 1); buildDays(); render(); subscribe(); }
-    if(id==="nextM" && !isThisMonth()){ month = new Date(month.getFullYear(), month.getMonth()+1, 1); buildDays(); render(); subscribe(); }
-    if(id==="printBtn"){ buildPrint(); window.print(); }
+    var del=t.closest("[data-del]");
+    if(del && mode==="parent"){
+      var id=del.dataset.del;
+      if(armedDel===id){
+        armedDel=null; var up={}; up["children/"+current+"/wallet/"+id]=null; commit(up);
+      }else{ armedDel=id; render(); }
+      return;
+    }
+    if(armedDel && !del){ armedDel=null; render(); }
+    var id2=t.id;
+    if(id2==="mode-kid"||id2==="mode-parent"){ mode= id2==="mode-kid"?"kid":"parent"; confirming=null; lsSet("ots.v1.mode", mode); render(); window.scrollTo(0,0); return; }
+    if(id2==="view-btn-sheet"){ setView("sheet"); return; }
+    if(id2==="view-btn-wallet"){ setView("wallet"); return; }
+    if(id2==="tab-kansei"||id2==="wtab-kansei"){ current="kansei"; confirming=null; lsSet("ots.v1.who", current); render(); return; }
+    if(id2==="tab-hanon"||id2==="wtab-hanon"){ current="hanon"; confirming=null; lsSet("ots.v1.who", current); render(); return; }
+    if(id2==="prevM"){ month=new Date(month.getFullYear(), month.getMonth()-1, 1); confirming=null; setStatus(""); render(); return; }
+    if(id2==="nextM" && !isThisMonth()){ month=new Date(month.getFullYear(), month.getMonth()+1, 1); confirming=null; setStatus(""); render(); return; }
+    if(id2==="spendBtn" && mode==="parent"){ spend(); return; }
+    if(id2==="printBtn"){ buildPrint(); window.print(); return; }
+  });
+  ["spendPts","spendNote"].forEach(function(id){
+    document.getElementById(id).addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); if(mode==="parent") spend(); } });
   });
 
   [["rate","rate"],["cap","cap"],["goalN","goal"]].forEach(function(p){
     document.getElementById(p[0]).addEventListener("change", function(e){
-      var v = parseFloat(e.target.value);
-      if(isNaN(v)||v<=0){ e.target.value = cfg[p[1]]; return; }
-      cfg[p[1]] = (p[1]==="rate") ? v : Math.round(v);
-      e.target.value = cfg[p[1]];
-      if(p[1]==="cap") buildDays();
-      render(); saveCfg();
+      var v=parseFloat(e.target.value);
+      if(isNaN(v)||v<=0||(p[1]==="cap"&&v>20)){ e.target.value=S.cfg[p[1]]; return; }
+      v = p[1]==="rate" ? Math.round(v*100)/100 : Math.round(v);
+      var up={}; up["cfg/"+p[1]]=v; commit(up); buildPrint();
     });
   });
 
+  window.addEventListener("hashchange", function(){ var v=location.hash==="#wallet"?"wallet":"sheet"; if(v!==view){ view=v; render(); } });
+
+  /* ---------- print ---------- */
   function buildPrint(){
-    var span = document.getElementById("span").value, cap = cfg.cap;
+    var span=document.getElementById("span").value, cap=S.cfg.cap;
     var RULES = [
       "おてつだいを したら、きょうの ぎょうの マスを ぬる。<br>なにを したか、いえること。",
       "1にちに ぬれるのは "+cap+"マスまで。<br>1ぎょう ぬりきったら、その日は おしまい。",
-      "1かげつで "+cfg.goal+"マス こえたら、もくひょう たっせい。",
-      "もらったら、はんぶんは ためる、はんぶんは つかう。"
+      "1かげつで "+S.cfg.goal+"マス こえたら、もくひょう たっせい。",
+      "月が おわったら、ぬった マスが おさいふに 入る。<br>ためても つかっても いい。"
     ];
-    var rulesHtml = "";
+    var rulesHtml="";
     RULES.forEach(function(r,i){ rulesHtml += '<div class="prule-card"><span class="pn">'+(i+1)+'</span><span class="pt">'+r+'</span></div>'; });
-
     function jobTable(groups){
-      var h = '<table class="pjobs"><thead><tr><th>できること</th><th class="c">ぬれる かず</th></tr></thead><tbody>';
+      var h='<table class="pjobs"><thead><tr><th>できること</th><th class="c">ぬれる かず</th></tr></thead><tbody>';
       groups.forEach(function(g){
-        var parts = g.t.split(" ／ ");
+        var parts=g.t.split(" ／ ");
         h += '<tr><th colspan="2">'+parts[1]+'（'+parts[0]+'）</th></tr>';
         g.jobs.forEach(function(j){ h += '<tr><td>'+PLAIN[j.id]+'</td><td class="c">'+j.b+' マス</td></tr>'; });
       });
       return h+'</tbody></table>';
     }
-
-    var page1 = '<div class="ppage">'
-      + '<p class="ptitle">おてつだいの やくそく</p>'
-      + '<p class="psub">おてつだいを したら、シートの マスを ぬります。やくそくと ごほうびは、きょうだい おなじです。</p>'
+    var page1 = '<div class="ppage"><p class="ptitle">おてつだいの やくそく</p>'
+      + '<p class="psub">おてつだいを したら、シートの マスを ぬります。やくそくは、きょうだい おなじです。</p>'
       + '<div class="prules">'+rulesHtml+'</div>'
       + '<p class="pjobs-head">できること と、ぬれる マスの かず</p>'
       + '<div class="pjcols">'+jobTable(GROUPS.slice(0,2))+jobTable(GROUPS.slice(2))+'</div>'
-      + '<div class="pend"><b>ぜんぶ ぬれたら</b><br>'
-      +   'かいお：つぎの 第1にちようびに、いっしょに マスを かぞえます。<br>'
-      +   'うか：ごほうびの「たいけん」を 1つ えらべます（こうえんを きめる／パンケーキの かかり／えほんを 1さつ えらぶ など）。<br>'
-      +   'もらった おかねは、はんぶんは「ためる ふくろ」、はんぶんは「つかう ふくろ」へ。</div></div>';
+      + '<div class="pend"><b>月が おわったら</b><br>'
+      +   'おうちの人と いっしょに マスを かぞえて、「しめる」を おします。ぬった マスが おさいふに 入ります。<br>'
+      +   'おさいふの マスは、ためて おいても いいし、ほしい ものや やりたい ことに つかっても いい。のこった ぶんは つぎの 月に たされます。<br>'
+      +   '1マス ＝ $'+S.cfg.rate.toFixed(2)+'（かいおも うかも おなじ）</div></div>';
 
-    var cells=""; for(var c=0;c<cap;c++) cells += "<div></div>";
-    var cellBlock = '<div class="pcells" style="grid-template-columns:repeat('+cap+',1fr)">'+cells+'</div>';
+    var cells=""; for(var c=0;c<cap;c++) cells+="<div></div>";
+    var cellBlock='<div class="pcells">'+cells+'</div>';
     function rows(from,to,weekMode){
       var h='<table class="ptab"><thead><tr><th>ひ</th><th>ぬったマス</th><th class="r">けい</th></tr></thead><tbody>';
-      for(var i=from;i<=to;i++){
-        h += '<tr><td class="d">'+(weekMode ? "＿＿／＿＿（　）" : i+"日")+'</td><td>'+cellBlock+'</td><td class="t"></td></tr>';
-      }
+      for(var i=from;i<=to;i++) h += '<tr><td class="d">'+(weekMode?"＿＿／＿＿（　）":i+"日")+'</td><td>'+cellBlock+'</td><td class="t"></td></tr>';
       return h+'</tbody></table>';
     }
     function grid(){
       if(span==="week") return '<div class="pcols week" style="grid-template-columns:1fr">'+rows(1,7,true)+'</div>';
       return '<div class="pcols" style="grid-template-columns:1fr 1fr">'+rows(1,16,false)+rows(17,31,false)+'</div>';
     }
-
-    var sheets = "";
-    if (span === "week") {
-      /* 1週間版は 2人ぶんで 1まい */
-      var halves = "";
-      ["kansei","hanon"].forEach(function(ch){
-        halves += '<div class="phalf">'
-          + '<div class="phead"><span class="pname">'+CHILD[ch].r+'</span>'
-          +   '<span class="pmeta">しゅう：<span></span> 〜 <span></span></span></div>'
-          + grid()
-          + '<div class="ptot">ごうけい <span></span> マス'+(ch==="kansei" ? '　　きんがく <span></span>' : '　　ごほうび <span></span>')+'</div>'
-          + '</div>';
+    var tot='<div class="ptot">ごうけい <span></span> マス　　ドルにすると $ <span></span></div>';
+    var sheets="";
+    if(span==="week"){
+      var halves="";
+      KIDS.forEach(function(ch){
+        halves += '<div class="phalf"><div class="phead"><span class="pname">'+CHILD[ch].r+'</span><span class="pmeta">しゅう：<span></span> 〜 <span></span></span></div>'+grid()+tot+'</div>';
       });
-      sheets = '<div class="ppage">'
-        + '<p class="ptitle">ぬりつぶし シート</p>'
+      sheets = '<div class="ppage"><p class="ptitle">ぬりつぶし シート</p>'
         + '<p class="psub">1日に 1ぎょうずつ。1ぎょうは '+cap+'マス＝その日の じょうげんです。うえが かいお、したが うか。</p>'
-        + halves
-        + '<p class="pnote">やくそくと「できること」は、もう1まいの「おてつだいの やくそく」を 見てください。</p></div>';
-    } else {
-      /* 1か月版は 1人 1まい */
-      ["kansei","hanon"].forEach(function(ch){
-        sheets += '<div class="ppage">'
-          + '<p class="ptitle">'+CHILD[ch].r+'の ぬりつぶしシート</p>'
+        + halves + '<p class="pnote">やくそくと「できること」は、もう1まいの「おてつだいの やくそく」を 見てください。</p></div>';
+    }else{
+      KIDS.forEach(function(ch){
+        sheets += '<div class="ppage"><p class="ptitle">'+CHILD[ch].r+'の ぬりつぶしシート</p>'
           + '<p class="psub">1日に 1ぎょうずつ。1ぎょうは '+cap+'マス＝その日の じょうげんです。おてつだいを したら、その日の マスを ぬります。</p>'
           + '<div class="phead"><span class="pname" style="font-size:11pt">&nbsp;</span><span class="pmeta">つき：<span></span></span></div>'
-          + grid()
-          + '<div class="ptot">ごうけい <span></span> マス'+(ch==="kansei" ? '　　きんがく <span></span>' : '　　ごほうび <span></span>')+'</div>'
-          + '<p class="pnote">やくそくと「できること」は、もう1まいの「おてつだいの やくそく」を 見てください。</p>'
-          + '</div>';
+          + grid() + tot
+          + '<p class="pnote">月が おわったら、ごうけいを おさいふに 入れます。やくそくと「できること」は「おてつだいの やくそく」を 見てください。</p></div>';
       });
     }
-
-    document.getElementById("printArea").innerHTML = page1 + sheets;
+    document.getElementById("printArea").innerHTML = page1+sheets;
   }
 
-  /* ---- boot from device storage first, so the page is usable with no sign-in ---- */
-  var lc = LS.get("cfg");
-  if(lc){
-    if(typeof lc.rate==="number") cfg.rate=lc.rate;
-    if(typeof lc.cap==="number") cfg.cap=lc.cap;
-    if(typeof lc.goal==="number") cfg.goal=lc.goal;
-    cfg.updatedAt = lc.updatedAt||"";
-    document.getElementById("rate").value = cfg.rate;
-    document.getElementById("cap").value = cfg.cap;
-    document.getElementById("goalN").value = cfg.goal;
+  /* ---------- boot ---------- */
+  var lm=lsGet("ots.v1.mode"); if(lm==="kid"||lm==="parent") mode=lm;
+  var lw=lsGet("ots.v1.who"); if(lw==="kansei"||lw==="hanon") current=lw;
+  if(location.hash==="#wallet") view="wallet";
+
+  if(!hadLocalV2){
+    // first run of v2 on this device: start from v1 local records
+    var c0=v1Cfg(); Object.keys(c0).forEach(function(p){ setPath(S,p,c0[p]); });
+    var m0=migrationUpdates(); Object.keys(m0).forEach(function(p){ setPath(S,p,m0[p]); });
+    S=norm(S); lsSet(LS_STATE, S);
   }
-  var lm = LS.get("mode"); if(lm==="kid"||lm==="parent") mode = lm;
-  var lw = LS.get("who"); if(lw==="kansei"||lw==="hanon") current = lw;
 
   buildJobs();
-  buildDays();
   render();
   buildPrint();
-  setHint();
-  setStatus(localOK ? "この端末のなかに ほぞんされます。" : "このブラウザでは きろくを のこせません（プライベートモードかも）。");
 
-  if(window.claude && window.claude.use){
-    window.claude.use("db").then(function(d){
-      if(!d) return;
-      db = d; setHint();
-      d.doc("config/points").onSnapshot(function(s){
-        if(!s.exists) return;
-        var c = s.data()||{};
-        if((c.updatedAt||"") <= (cfg.updatedAt||"")) return;
-        if(typeof c.rate==="number") cfg.rate=c.rate;
-        if(typeof c.cap==="number") cfg.cap=c.cap;
-        if(typeof c.goal==="number") cfg.goal=c.goal;
-        cfg.updatedAt = c.updatedAt||"";
-        LS.set("cfg", cfg);
-        document.getElementById("rate").value = cfg.rate;
-        document.getElementById("cap").value = cfg.cap;
-        document.getElementById("goalN").value = cfg.goal;
-        buildDays(); render(); buildPrint();
-      }, function(){});
-      subscribe();
-    });
+  try{
+    if(window.firebase && firebase.initializeApp){
+      if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      var db=firebase.database();
+      fbRef=db.ref(FB_PATH);
+      db.ref(".info/connected").on("value", function(s){ fbOnline=!!s.val(); setHint(); });
+      fbRef.on("value", function(snap){
+        var v=snap.val(), first=!fbLoaded;
+        fbLoaded=true;
+        if(v===null){
+          // empty on the server: upload what this device has
+          S=norm(S);
+          fbRef.update({cfg:S.cfg, children:S.children}).catch(syncFailed);
+        }else{
+          S=norm(v);
+          lsSet(LS_STATE, S);
+          if(first){
+            var up={};
+            if(!lsGet(LS_MIG)){
+              up=migrationUpdates();
+              if(!v.cfg){ var cc=v1Cfg(); Object.keys(cc).forEach(function(p){ up[p]=cc[p]; }); }
+            }
+            if(Object.keys(up).length) commit(up);
+          }
+        }
+        if(first) lsSet(LS_MIG, 1);
+        setHint(); render();
+      }, function(err){ syncFailed(err); render(); });
+    }
+  }catch(e){ fbRef=null; }
+  setHint();
+  if(!window.firebase){
+    var b=document.getElementById("banner");
+    b.innerHTML="<b>オフライン</b> — どうきの しくみが よみこめませんでした。この端末の中だけで 動いています。";
+    b.hidden=false;
   }
 })();
 </script>
